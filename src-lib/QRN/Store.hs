@@ -22,14 +22,8 @@ module QRN.Store (
   extract,
 
   observe,
-  observeDefault,
-  observeSpins,
-  observeBits,
   peek,
   peekAll,
-  peekAllDefault,
-  peekAllSpins,
-  peekAllBits
 
 ) where
 
@@ -151,33 +145,11 @@ extract n = do
                 return xs
 
 
-observeDefault :: Int -> IO ()
-observeDefault n = extract n >>= showDataColors
-
-observeSpins :: Int -> IO ()
-observeSpins n = extract n >>= showSpins
-
-observeBits :: Int -> IO ()
-observeBits n = extract n >>= showBits
-
 observe :: DisplayStyle -> Int -> IO ()
-observe Default = observeDefault
-observe Spins   = observeSpins
-observe Bits    = observeBits
-
-
-peekAllDefault :: IO ()
-peekAllDefault = getStoreBytes >>= showDataColors
-
-peekAllSpins :: IO ()
-peekAllSpins = getStoreBytes >>= showSpins
-
-peekAllBits :: IO ()
-peekAllBits = getStoreBytes >>= showBits
+observe s n = extract n >>= display s
 
 peekAll :: DisplayStyle -> IO ()
 peekAll s = getStoreBytes >>= display s
-
 
 peek :: DisplayStyle -> Int -> IO ()
 peek s n = take n <$> getStoreBytes >>= display s
