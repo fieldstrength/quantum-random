@@ -1,0 +1,59 @@
+name:                qrn
+version:             0.1.0.0
+synopsis:            Retrieve and manage real quantum random numbers.
+description:         Retrieve and manage real quantum random numbers.
+homepage:            http://github.com/BlackBrane/quantum-random-numbers/
+license:             MIT
+license-file:        LICENSE
+author:              Cliff Harvey
+maintainer:          cs.hbar+hs@gmail.com
+copyright:           2016
+category:            Scientific
+build-type:          Simple
+
+cabal-version:       >=1.10
+
+data-files:          qrn_data/qrn_store.bin,
+                     qrn_data/qrn_settings.json
+
+-- extra-source-files:
+
+library
+  hs-source-dirs:      src-lib
+
+  build-depends:       base          >=4.8 && <4.9,
+                       ansigraph     >=0.1,
+                       aeson         >=0.8 && <1.0,
+                       text          >=1.2 && <1.3,
+                       regex-posix   >=0.9 && <1.0,
+                       bytestring    >=0.10 && <0.11,
+                       http-conduit  >=2.1 && <2.2,
+                       ansi-terminal >=0.6 && <0.7,
+
+                       -- for executable
+                       haskeline     >=0.7 && <0.8,
+                       mtl           >= 2.2 && <2.3,
+                       directory     >=1.2
+
+  exposed-modules:     QRN,
+                       QRN.Manager
+
+  other-modules:       QRN.Codec,
+                       QRN.ANU,
+                       QRN.Store,
+                       QRN.Display,
+                       QRN.Helpers,
+                       Paths_qrn
+
+  default-language:    Haskell2010
+
+
+executable qrn
+  hs-source-dirs:      src-ex
+
+  main-is:             Main.hs
+
+  build-depends:       base          >=4.8 && <4.9,
+                       qrn
+
+  default-language:    Haskell2010
