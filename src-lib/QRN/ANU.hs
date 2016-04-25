@@ -14,8 +14,7 @@ import Data.Aeson           (decode, eitherDecode)
 import Data.ByteString.Lazy (ByteString)
 import Network.HTTP.Conduit (simpleHttp)
 
-
--- Returns numbers between 0-65535 (16 bits)
+-- Returns numbers between 0-255 (8 bits)
 anuURL :: Int -> String
 anuURL n = "http://qrng.anu.edu.au/API/jsonI.php?length=" ++ show n ++ "&type=uint8"
 

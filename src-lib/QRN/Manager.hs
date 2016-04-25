@@ -1,6 +1,6 @@
 {-# LANGUAGE ViewPatterns #-}
 
-module QRN.Manager where
+module QRN.Manager (main) where
 
 import QRN
 import QRN.Helpers
@@ -19,10 +19,10 @@ import System.Directory         (doesFileExist)
 data Setting = MinSize | TargetSize
 
 data Command = Add Int
-             | Observe DisplayStyle Int
-             | Peek DisplayStyle Int
+             | Observe Int DisplayStyle
+             | Peek Int DisplayStyle
              | PeekAll DisplayStyle
-             | Live DisplayStyle Int
+             | Live Int DisplayStyle
              | Fill
              | RestoreDefaults
              | Reinitialize
@@ -74,22 +74,17 @@ cwords :: String -> [String]
 cwords = words . map toLower
 
 readCommand :: String -> Maybe Command
-readCommand (cwords -> ["add",w])                   = Add <$> readInt w
+readCommand (cwords -> ["add",n])                   = Add <$> readInt n
 readCommand (cwords -> ["peekall"])                 = Just (PeekAll Default)
-readCommand (cwords -> ["peekall","spins"])         = Just (PeekAll Spins)
-readCommand (cwords -> ["peekall","binary"])        = Just (PeekAll Bits)
+readCommand (cwords -> ["peekall",s])               = PeekAll <$> parseStyle s
 readCommand (cwords -> ["peek","all"])              = Just (PeekAll Default)
-readCommand (cwords -> ["peek","all","spins"])      = Just (PeekAll Spins)
-readCommand (cwords -> ["peek","all","binary"])     = Just (PeekAll Bits)
-readCommand (cwords -> ["observe",w])               = Observe Default <$> readInt w
-readCommand (cwords -> ["observe",w,"spins"])       = Observe Spins <$> readInt w
-readCommand (cwords -> ["observe",w,"binary"])      = Observe Bits <$> readInt w
-readCommand (cwords -> ["peek",w])                  = Peek Default <$> readInt w
-readCommand (cwords -> ["peek",w,"spins"])          = Peek Spins <$> readInt w
-readCommand (cwords -> ["peek",w,"binary"])         = Peek Bits <$> readInt w
-readCommand (cwords -> ["live",w])                  = Live Default <$> readInt w
-readCommand (cwords -> ["live",w,"spins"])          = Live Spins <$> readInt w
-readCommand (cwords -> ["live",w,"binary"])         = Live Bits <$> readInt w
+readCommand (cwords -> ["peek","all",s])            = PeekAll <$> parseStyle s
+readCommand (cwords -> ["observe",n])               = Observe <$> readInt n <*> Just Default
+readCommand (cwords -> ["observe",n,s])             = Observe <$> readInt n <*> parseStyle s
+readCommand (cwords -> ["peek",n])                  = Peek <$> readInt n <*> Just Default
+readCommand (cwords -> ["peek",n,s])                = Peek <$> readInt n <*> parseStyle s
+readCommand (cwords -> ["live",n])                  = Live <$> readInt n <*> Just Default
+readCommand (cwords -> ["live",n,s])                = Live <$> readInt n <*> parseStyle s
 readCommand (cwords -> ["fill"])                    = Just Fill
 readCommand (cwords -> ["restore"])                 = Just RestoreDefaults
 readCommand (cwords -> ["reinitialize"])            = Just Reinitialize
@@ -112,9 +107,9 @@ bitsNBytes n = show n ++ b ++ show (n*8) ++ " bits)"
 
 description :: Command -> String
 description (Add n)         = "Adding " ++ bitsNBytes n ++ " of quantum random data to store"
-description (Live _ n)      = "Viewing up to " ++ bitsNBytes n ++ " of live quantum random data from ANU"
-description (Observe _ n)   = "Observing " ++ bitsNBytes n ++ " of quantum random data from store"
-description (Peek _ n)      = "Viewing up to " ++ bitsNBytes n ++ " of quantum random data from store"
+description (Live n _)      = "Viewing up to " ++ bitsNBytes n ++ " of live quantum random data from ANU"
+description (Observe n _)   = "Observing " ++ bitsNBytes n ++ " of quantum random data from store"
+description (Peek n _)      = "Viewing up to " ++ bitsNBytes n ++ " of quantum random data from store"
 description (PeekAll _)     = "Viewing all quantum random data from store"
 description Fill            = "Filling quantum random data store to specified level"
 description RestoreDefaults = "Reverting to default settings"
@@ -130,10 +125,10 @@ announce c = let str = description c in if str == "" then pure () else putStrLn 
 
 interp :: Command -> IO ()
 interp (Add n)             = addToStore n
-interp (Observe style n)   = observe style n
-interp (Peek style n)      = peek style n
+interp (Observe n style)   = observe style n
+interp (Peek n style)      = peek style n
 interp (PeekAll style)     = peekAll style
-interp (Live style n)      = fetchQRN n >>= display style
+interp (Live n style)      = fetchQRN n >>= display style
 interp Fill                = fill
 interp RestoreDefaults     = restoreDefaults
 interp Reinitialize        = reinitialize
