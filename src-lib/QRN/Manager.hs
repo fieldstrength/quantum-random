@@ -12,6 +12,7 @@ import Control.Monad.State      (lift)
 import System.Console.Haskeline (InputT, getInputLine, runInputT, defaultSettings, outputStrLn)
 import Data.ByteString          (writeFile)
 import System.Directory         (doesFileExist)
+import System.Environment       (getArgs)
 
 
 ---- Structure of commands ----
@@ -146,6 +147,9 @@ interp Quit               = return ()
 command :: Command -> IO ()
 command c = announce c *> interp c
 
+execCommand :: String -> IO ()
+execCommand (readCommand -> Just c) = command c
+execCommand _                       = errorMsg
 
 ---- Auxilliary IO actions ----
 
@@ -195,4 +199,7 @@ qrn = do str <- getInputLine "QRN> "
               Nothing   -> lift errorMsg    *> qrn
 
 main :: IO ()
-main = runInputT defaultSettings qrn
+main = do args <- getArgs
+          case args of
+               [] -> runInputT defaultSettings qrn
+               _  -> execCommand (unwords args)

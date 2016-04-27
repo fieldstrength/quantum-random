@@ -1,14 +1,17 @@
 # quantum-random-numbers
-Retrieve, store and manage real quantum random numbers. These random numbers are obtained by measuring the vacuum and served by [Australian National University](http://qrng.anu.edu.au/).
+Retrieve, store and manage real quantum random numbers. They are obtained by measuring the vacuum and served by [Australian National University](http://qrng.anu.edu.au/).
 
 This package provides:
 * A Haskell library to performs these tasks, in conjunction with a local data store set up upon installation
-* An executable program providing an interface to these functionalities.
+* An executable program `qrn` providing an interface to these functionalities.
 
 The data store is managed according to a simple protocol: There is a minimum size and a target maximum size adjustable by the user. When data is requested that would reduce the store below the minimum level, it requests from ANU enough QRN data to both fulfill the request as well as fill the data store back to the "target" size.
 
 
 ### Command line usage
+
+Call `qrn` without any command line arguments to launch the interactive program, or alternatively
+supply the desired command as arguments to only perform the specified operation.
 
 #### Available commands
 
@@ -29,6 +32,8 @@ help/?            –  Display this text
 quit              –  Quit
 ```
 
+Commands are case-insensitive.
+
 #### Display options
 
 By default, data is displayed by showing a color for every 4 bits (every half-byte). One can also specify the data to be displayed as binary,
@@ -43,7 +48,7 @@ So the available display modifiers are:
 
 Simply type these modifiers after any display command. For example:
 
-`observe 100 colorspins`
+`observe 25 colorspins`
 
 `live 50 binary`
 
