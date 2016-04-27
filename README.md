@@ -1,4 +1,7 @@
 # quantum-random-numbers
+
+[![Build Status](https://travis-ci.org/BlackBrane/quantum-random-numbers.svg?branch=master)](https://travis-ci.org/BlackBrane/quantum-random-numbers)
+
 Retrieve, store and manage real quantum random numbers. They are obtained by measuring the vacuum and served by [Australian National University](http://qrng.anu.edu.au/).
 
 This package provides:
