@@ -16,7 +16,9 @@ cabal-version:       >=1.10
 data-files:          qrn_data/qrn_store.bin,
                      qrn_data/qrn_settings.json
 
--- extra-source-files:
+source-repository head
+  type:     git
+  location: git://github.com/BlackBrane/quantum-random-numbers.git
 
 library
   hs-source-dirs:      src-lib
