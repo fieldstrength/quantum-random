@@ -33,28 +33,32 @@ data Command = Add Int
              | Quit
 
 helpMsg = unlines
-  [ "===== Available commands ====="
-  , "add [# bytes]  –  Request specified number of QRN bytes from ANU and add them to the store"
-  , "live [# bytes]  –  Request specified number of QRN bytes from ANU and display them directly"
-  , "observe [# bytes] –  Take and display QRN data from store, retrieving more if needed. Those taken from the store are removed."
-  , "peek [# bytes]  –  Display up to the specified number of bytes from the store. They are not removed."
-  , "peekAll  –  Display all bytes from the store. They are not removed."
-  , "fill  –  Fill the store to the target size with live ANU quantum random numbers"
-  , "restoreDefaults  –  Restore default settings."
-  , "reinitialize  –  Restore default settings, and refill QRN store to target size."
-  , "status  –  Display status of store and settings."
-  , "save [filepath]  –  save binary qrn file to specified file path."
-  , "set minStoreSize  –  Set the number of bytes below which we refill."
-  , "set targetStoreSize  –  Set the number of bytes we aim to have when refilling."
-  , "help/?  –  Display this text."
-  , "quit  –  quit."
+  [ ""
+  , "======= Available commands ======="
   , ""
-  , "===== Display options ====="
-  , "Commands that display QRN data can take an optional display style modifier: 'spins' or 'binary'"
+  , "add [# bytes]     –  Request specified number of QRN bytes from ANU and add them to the store"
+  , "live [# bytes]    –  Request specified number of QRN bytes from ANU and display them directly"
+  , "observe [# bytes] –  Take and display QRN data from store, retrieving more if needed. Those taken from the store are removed"
+  , "peek [# bytes]    –  Display up to the specified number of bytes from the store without removing them"
+  , "peekAll           –  Display all data from the store without removing them"
+  , "fill              –  Fill the store to the target size with live ANU quantum random numbers"
+  , "restoreDefaults   –  Restore default settings"
+  , "reinitialize      –  Restore default settings, and refill store to target size"
+  , "status            –  Display status of store and settings"
+  , "save [filepath]   –  save binary qrn file to specified file path"
+  , "set minSize       –  Set the number of bytes below which the store is refilled"
+  , "set targetSize    –  Set the number of bytes to have after refilling"
+  , "help/?            –  Display this text"
+  , "quit              –  Quit"
+  , ""
+  , "======= Display options ======="
+  , ""
+  , "Commands that display QRN data can take an optional display style modifier: "
+  , "'colors' (the default), 'spins', 'bits', 'colorSpins' or 'colorBits'."
+  , ""
   , "Examples:"
-  , "\"observe 25 spins\""
-  , "\"live 50 binary\""
-  , ""
+  , "\"observe 25 colorspins\""
+  , "\"live 50 bits\""
   ]
 
 ---- Parsing commands ----
@@ -74,29 +78,29 @@ cwords :: String -> [String]
 cwords = words . map toLower
 
 readCommand :: String -> Maybe Command
-readCommand (cwords -> ["add",n])                   = Add <$> readInt n
-readCommand (cwords -> ["peekall"])                 = Just (PeekAll Default)
-readCommand (cwords -> ["peekall",s])               = PeekAll <$> parseStyle s
-readCommand (cwords -> ["peek","all"])              = Just (PeekAll Default)
-readCommand (cwords -> ["peek","all",s])            = PeekAll <$> parseStyle s
-readCommand (cwords -> ["observe",n])               = Observe <$> readInt n <*> Just Default
-readCommand (cwords -> ["observe",n,s])             = Observe <$> readInt n <*> parseStyle s
-readCommand (cwords -> ["peek",n])                  = Peek <$> readInt n <*> Just Default
-readCommand (cwords -> ["peek",n,s])                = Peek <$> readInt n <*> parseStyle s
-readCommand (cwords -> ["live",n])                  = Live <$> readInt n <*> Just Default
-readCommand (cwords -> ["live",n,s])                = Live <$> readInt n <*> parseStyle s
-readCommand (cwords -> ["fill"])                    = Just Fill
-readCommand (cwords -> ["restore"])                 = Just RestoreDefaults
-readCommand (cwords -> ["reinitialize"])            = Just Reinitialize
-readCommand (cwords -> ["status"])                  = Just Status
-readCommand (cwords -> ["save",path])               = Just (Save path)
-readCommand (cwords -> ["help"])                    = Just Help
-readCommand (cwords -> ["?"])                       = Just Help
-readCommand (cwords -> ["quit"])                    = Just Quit
-readCommand (cwords -> ["q"])                       = Just Quit
-readCommand (cwords -> ["set","minstoresize",n])    = Set MinSize <$> readInt n
-readCommand (cwords -> ["set","targetstoresize",n]) = Set TargetSize <$> readInt n
-readCommand _                                       = Nothing
+readCommand (cwords -> ["add",n])              = Add <$> readInt n
+readCommand (cwords -> ["peekall"])            = Just (PeekAll Default)
+readCommand (cwords -> ["peekall",s])          = PeekAll <$> parseStyle s
+readCommand (cwords -> ["peek","all"])         = Just (PeekAll Default)
+readCommand (cwords -> ["peek","all",s])       = PeekAll <$> parseStyle s
+readCommand (cwords -> ["observe",n])          = Observe <$> readInt n <*> Just Default
+readCommand (cwords -> ["observe",n,s])        = Observe <$> readInt n <*> parseStyle s
+readCommand (cwords -> ["peek",n])             = Peek <$> readInt n <*> Just Default
+readCommand (cwords -> ["peek",n,s])           = Peek <$> readInt n <*> parseStyle s
+readCommand (cwords -> ["live",n])             = Live <$> readInt n <*> Just Default
+readCommand (cwords -> ["live",n,s])           = Live <$> readInt n <*> parseStyle s
+readCommand (cwords -> ["fill"])               = Just Fill
+readCommand (cwords -> ["restore"])            = Just RestoreDefaults
+readCommand (cwords -> ["reinitialize"])       = Just Reinitialize
+readCommand (cwords -> ["status"])             = Just Status
+readCommand (cwords -> ["save",path])          = Just (Save path)
+readCommand (cwords -> ["help"])               = Just Help
+readCommand (cwords -> ["?"])                  = Just Help
+readCommand (cwords -> ["quit"])               = Just Quit
+readCommand (cwords -> ["q"])                  = Just Quit
+readCommand (cwords -> ["set","minsize",n])    = Set MinSize <$> readInt n
+readCommand (cwords -> ["set","targetsize",n]) = Set TargetSize <$> readInt n
+readCommand _                                  = Nothing
 
 
 ---- Describing/announcing commands ----
@@ -124,20 +128,20 @@ announce c = let str = description c in if str == "" then pure () else putStrLn 
 ---- Interpreting commands to actions ----
 
 interp :: Command -> IO ()
-interp (Add n)             = addToStore n
-interp (Observe n style)   = observe style n
-interp (Peek n style)      = peek style n
-interp (PeekAll style)     = peekAll style
-interp (Live n style)      = fetchQRN n >>= display style
-interp Fill                = fill
-interp RestoreDefaults     = restoreDefaults
-interp Reinitialize        = reinitialize
-interp Status              = status
-interp (Save path)         = save path
-interp (Set MinSize n)     = setMinStoreSize n
-interp (Set TargetSize n)  = setTargetStoreSize n
-interp Help                = putStrLn helpMsg
-interp Quit                = return ()
+interp (Add n)            = addToStore n
+interp (Observe n style)  = observe style n
+interp (Peek n style)     = peek style n
+interp (PeekAll style)    = peekAll style
+interp (Live n style)     = fetchQRN n >>= display style
+interp Fill               = fill
+interp RestoreDefaults    = restoreDefaults
+interp Reinitialize       = reinitialize
+interp Status             = status
+interp (Save path)        = save path
+interp (Set MinSize n)    = setMinStoreSize n
+interp (Set TargetSize n) = setTargetStoreSize n
+interp Help               = putStrLn helpMsg
+interp Quit               = return ()
 
 command :: Command -> IO ()
 command c = announce c *> interp c
