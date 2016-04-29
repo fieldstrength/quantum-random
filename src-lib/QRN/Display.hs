@@ -79,47 +79,47 @@ w8bools :: Word8 -> [Bool]
 w8bools w = testBit w <$> [0..7]
 
 bitColorShow :: [Bool] -> IO ()
-bitColorShow [a,b,c,d,e,f,g,h] =
+bitColorShow [a,b,c,d,e,f,g,h] = do
   let l1 = [a,b,c,d]
-      l2 = [e,f,g,h] in do
-        colorBlock (boolColor l1)
-        putStr (bitStr l1)
-        colorBlock (boolColor l2)
-        putStr (bitStr l2)
+  let l2 = [e,f,g,h]
+  colorBlock (boolColor l1)
+  putStr (bitStr l1)
+  colorBlock (boolColor l2)
+  putStr (bitStr l2)
 bitColorShow _ = error "bitColorShow: Bool list not of length 8"
 
 bitShow :: [Bool] -> IO ()
-bitShow [a,b,c,d,e,f,g,h] =
-  do let l1 = [a,b,c,d]
-     let l2 = [e,f,g,h]
-     putStr (bitStr l1)
-     putStr (bitStr l2)
+bitShow [a,b,c,d,e,f,g,h] = do
+  let l1 = [a,b,c,d]
+  let l2 = [e,f,g,h]
+  putStr (bitStr l1)
+  putStr (bitStr l2)
 bitShow _ = error "bitShow: Bool list not of length 8"
 
 spinColorShow :: [Bool] -> IO ()
-spinColorShow [a,b,c,d,e,f,g,h] =
-  do let l1 = [a,b,c,d]
-     let l2 = [e,f,g,h]
-     colorBlock (boolColor l1)
-     putStr (spinStr l1)
-     colorBlock (boolColor l2)
-     putStr (spinStr l2)
+spinColorShow [a,b,c,d,e,f,g,h] = do
+  let l1 = [a,b,c,d]
+  let l2 = [e,f,g,h]
+  colorBlock (boolColor l1)
+  putStr (spinStr l1)
+  colorBlock (boolColor l2)
+  putStr (spinStr l2)
 spinColorShow _ = error "spinColorShow: Bool list not of length 8"
 
 spinShow :: [Bool] -> IO ()
-spinShow [a,b,c,d,e,f,g,h] =
-  do let l1 = [a,b,c,d]
-     let l2 = [e,f,g,h]
-     putStr (spinStr l1)
-     putStr (spinStr l2)
+spinShow [a,b,c,d,e,f,g,h] = do
+  let l1 = [a,b,c,d]
+  let l2 = [e,f,g,h]
+  putStr (spinStr l1)
+  putStr (spinStr l2)
 spinShow _ = error "spinShow: Bool list not of length 8"
 
 colorShow :: [Bool] -> IO ()
-colorShow [a,b,c,d,e,f,g,h] =
-  do let l1 = [a,b,c,d]
-     let l2 = [e,f,g,h]
-     colorBlock (boolColor l1)
-     colorBlock (boolColor l2)
+colorShow [a,b,c,d,e,f,g,h] = do
+  let l1 = [a,b,c,d]
+  let l2 = [e,f,g,h]
+  colorBlock (boolColor l1)
+  colorBlock (boolColor l2)
 colorShow _ = error "colorShow: Bool list not of length 8"
 
 

@@ -19,7 +19,7 @@ data QResponse = QResponse { qtype   :: !Text
 data QSettings = QSettings { minStoreSize :: Int
                            , targetStoreSize :: Int } deriving (Show, Generic)
 
-defaults = QSettings 100 1000
+defaults = QSettings 200 800
 
 instance FromJSON QResponse
 instance ToJSON   QResponse
