@@ -1,5 +1,5 @@
 name:                qrn
-version:             0.1.0.0
+version:             0.2.0.0
 synopsis:            Retrieve and manage real quantum random numbers.
 description:         Retrieve and manage real quantum random numbers.
 homepage:            http://github.com/BlackBrane/quantum-random-numbers/
@@ -31,6 +31,7 @@ library
                        bytestring    >=0.10 && <0.11,
                        http-conduit  >=2.1 && <2.2,
                        ansi-terminal >=0.6 && <0.7,
+                       transformers  >=0.4 && <0.5,
 
                        -- for executable
                        haskeline     >=0.7 && <0.8,
@@ -44,7 +45,7 @@ library
                        QRN.ANU,
                        QRN.Store,
                        QRN.Display,
-                       QRN.Helpers,
+                       QRN.Monad,
                        Paths_qrn
 
   default-language:    Haskell2010

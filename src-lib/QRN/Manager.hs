@@ -3,16 +3,16 @@
 module QRN.Manager (main) where
 
 import QRN
-import QRN.Helpers
+import QRN.Monad
 
-import Prelude           hiding (writeFile)
-import Data.Char                (isDigit, toLower)
-import Data.Maybe               (isJust)
-import Control.Monad.State      (lift)
+import Prelude hiding (writeFile)
+import Data.Char (isDigit, toLower)
+import Data.Maybe (isJust)
+import Control.Monad.Except (ExceptT,liftIO,lift)
 import System.Console.Haskeline (InputT, getInputLine, runInputT, defaultSettings, outputStrLn)
-import Data.ByteString          (writeFile)
-import System.Directory         (doesFileExist)
-import System.Environment       (getArgs)
+import Data.ByteString (writeFile)
+import System.Directory (doesFileExist)
+import System.Environment (getArgs)
 
 
 ---- Structure of commands ----
@@ -128,24 +128,24 @@ announce c = let str = description c in if str == "" then pure () else putStrLn 
 
 ---- Interpreting commands to actions ----
 
-interp :: Command -> IO ()
+interp :: Command -> ErrorM ()
 interp (Add n)            = addToStore n
 interp (Observe n style)  = observe style n
 interp (Peek n style)     = peek style n
 interp (PeekAll style)    = peekAll style
-interp (Live n style)     = fetchQRN n >>= display style
+interp (Live n style)     = fetchQRN n >>= liftIO . display style
 interp Fill               = fill
-interp RestoreDefaults    = restoreDefaults
+interp RestoreDefaults    = liftIO restoreDefaults
 interp Reinitialize       = reinitialize
 interp Status             = status
-interp (Save path)        = save path
+interp (Save path)        = liftIO $ save path
 interp (Set MinSize n)    = setMinStoreSize n
-interp (Set TargetSize n) = setTargetStoreSize n
-interp Help               = putStrLn helpMsg
+interp (Set TargetSize n) = setTarStoreSize n
+interp Help               = liftIO $ putStrLn helpMsg
 interp Quit               = return ()
 
 command :: Command -> IO ()
-command c = announce c *> interp c
+command c = handleErrors $ liftIO (announce c) *> interp c
 
 execCommand :: String -> IO ()
 execCommand (readCommand -> Just c) = command c
@@ -153,22 +153,22 @@ execCommand _                       = errorMsg
 
 ---- Auxilliary IO actions ----
 
-status :: IO ()
+status :: ErrorM ()
 status = do
-  siz <- storeSize
   min <- getMinStoreSize
   tar <- getTargetStoreSize
-  sto <- getStoreFile
-  mapM_ putStrLn
-    [ "Store contains " ++ bitsNBytes siz ++ " of quantum random data"
-    , ""
-    , "Minimum store size set to " ++ bitsNBytes min ++ "."
-    , "Target store size set to " ++ bitsNBytes tar ++ "."
-    , ""
-    , "Local data store location:"
-    , sto
-    , ""
-    ]
+  liftIO $ do siz <- storeSize
+              sto <- getStoreFile
+              mapM_ putStrLn
+                [ "Store contains " ++ bitsNBytes siz ++ " of quantum random data"
+                , ""
+                , "Minimum store size set to " ++ bitsNBytes min ++ "."
+                , "Target store size set to " ++ bitsNBytes tar ++ "."
+                , ""
+                , "Local data store location:"
+                , sto
+                , ""
+                ]
 
 save :: String -> IO ()
 save path = do
