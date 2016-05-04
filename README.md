@@ -76,19 +76,18 @@ extract :: Int -> ErrorM [Word8]
 ```
 which invokes the machinery to retrieve more data and update the store as needed.
 
-There are also versions of these functions that explicitly handle errors instead of halting execution when a problem occurs.
-
-Errors are handled via an `ExceptT` monad transformer with a custom error data type.
+This and other functions use a custom error handling context via the `ExceptT` monad transformer with a custom error data type.
 
 ```haskell
 type ErrorM a = ExceptT QError IO a
 ```
 
-So the versions of the above functions that are used internalls
+The `Quantum.Random.ErrorM` module provides ways to change this context for convenience:
 
 ```haskell
-fetchQRNEither :: Int -> IO (Either String [Word8])
-fetchQRNBitsEither :: Int -> IO (Either String [Bool])
+stringifyErrorM :: ErrorM a -> ExceptT String IO a
+handleErrors :: ErrorM () -> IO ()
+handleWithCrash :: ErrorM a -> IO a
 ```
 
 ### Future work
