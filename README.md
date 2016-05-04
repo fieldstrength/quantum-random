@@ -8,7 +8,10 @@ This package provides:
 * A Haskell library to performs these tasks, in conjunction with a local data store set up upon installation
 * An executable program `qrn` providing an interface to these functionalities.
 
-The data store is managed according to a simple protocol: There is a minimum size and a target maximum size adjustable by the user. When data is requested that would reduce the store below the minimum level, it requests from ANU enough QRN data to both fulfill the request as well as fill the data store back to the "target" size.
+The data store is managed according to a simple protocol: There is a minimum size and a target
+maximum size adjustable by the user. When data is requested that would reduce the store below the
+minimum level, more QRN data is requested from ANU to both fulfill the request and to refill the
+data store back to the "target" size.
 
 
 ### Command line usage
@@ -57,27 +60,36 @@ Simply type these modifiers after any display command. For example:
 
 ### Usage in Haskell code
 
-The most basic functionality, to retrieve data directly from ANU, is provided by these functions from the `QRN.ANU` module
-yielding either a list of bytes or a list of booleans. In both cases the argument specifies the number of bytes.
+The most basic functionality, to retrieve data directly from ANU, is provided by these functions
+from the `QRN.ANU` module yielding either a list of bytes or a list of booleans. In both cases the
+argument specifies the number of bytes.
 
 ```haskell
 fetchQRN :: Int -> IO [Word8]
 fetchQRNBits :: Int -> IO [Bool]
 ```
 
-There are also versions of these functions that explicitly handle errors instead of halting execution when a problem occurs:
+Operations involving the data store are exported by the `QRN.Store`. An important one is
 
 ```haskell
-fetchQRN' :: Int -> IO (Either String [Word8])
-fetchQRNBits' :: Int -> IO (Either String [Bool])
+extract :: Int -> ErrorM [Word8]
 ```
+which invokes the machinery to retrieve more data and update the store as needed.
 
-The functions for working with the data store are exported by the `QRN.Store`. An important one is
+There are also versions of these functions that explicitly handle errors instead of halting execution when a problem occurs.
+
+Errors are handled via an `ExceptT` monad transformer with a custom error data type.
 
 ```haskell
-extract :: Int -> IO [Word8]
+type ErrorM a = ExceptT QError IO a
 ```
-which invokes the machinery to retrive more data and update the store as needed.
+
+So the versions of the above functions that are used internalls
+
+```haskell
+fetchQRNEither :: Int -> IO (Either String [Word8])
+fetchQRNBitsEither :: Int -> IO (Either String [Bool])
+```
 
 ### Future work
 

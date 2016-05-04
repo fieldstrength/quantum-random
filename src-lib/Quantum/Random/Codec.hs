@@ -1,8 +1,19 @@
 {-# LANGUAGE DeriveGeneric #-}
 
-module QRN.Codec where
+-- | Internal module for handling conversion between raw text and structured data.
+module Quantum.Random.Codec (
 
-import QRN.Monad
+  QResponse (..),
+  QSettings (..),
+  defaults,
+  parseResponse,
+  parseSettings,
+  updateTarSize,
+  updateMinSize
+
+) where
+
+import Quantum.Random.ErrorM
 
 import GHC.Generics (Generic)
 import Data.Aeson (FromJSON,ToJSON,eitherDecode)
@@ -21,6 +32,7 @@ data QResponse = QResponse { qtype   :: !Text
                            , qdata   :: ![Int]
                            , success :: !Bool } deriving (Show, Generic)
 
+-- | Corresponds to the JSON object in which settings are stored locally.
 data QSettings = QSettings { minStoreSize :: Int
                            , targetStoreSize :: Int } deriving (Show, Generic)
 
@@ -30,13 +42,14 @@ instance ToJSON   QResponse
 instance FromJSON QSettings
 instance ToJSON   QSettings
 
-
+-- | Default settings.
 defaults = QSettings 200 800
 
-
+-- | Update the minimum store size field of a settings record.
 updateMinSize :: Int -> QSettings -> QSettings
 updateMinSize n qs = qs { minStoreSize = n }
 
+-- | Update the target store size field of a settings record.
 updateTarSize :: Int -> QSettings -> QSettings
 updateTarSize n qs = qs { targetStoreSize = n }
 
@@ -58,9 +71,10 @@ replaceWord :: String -> String -> String -> String
 replaceWord x y s = let (a,b,c) = s =~ x :: (String, String, String)
                     in  a ++ y ++ c
 
-
+-- | From a Bytestring, attempt to decode a response from ANU ('QResponse') within the custom error context.
 parseResponse :: ByteString -> Either QError QResponse
-parseResponse = first ParseResponseError . eitherDecode
+parseResponse = first ParseResponseError . eitherDecode . process
 
+-- | From a Bytestring, attempt to decode a settings record within the custom error context.
 parseSettings :: ByteString -> Either QError QSettings
 parseSettings = first ParseSettingsError . eitherDecode

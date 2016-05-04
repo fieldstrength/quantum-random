@@ -1,7 +1,19 @@
 name:                qrn
 version:             0.2.0.0
-synopsis:            Retrieve and manage real quantum random numbers.
-description:         Retrieve and manage real quantum random numbers.
+synopsis:            Retrieve, store and manage real quantum random numbers.
+
+description:         Retrieve, store, manage and visualize real quantum random numbers
+                     obtained by measuring the vacuum and served by Australian National
+                     University. The functionality is provided both by the haskell module
+                     __Quantum.Random__ and an executable program `qrn`.
+                     .
+
+                     The data store is managed according to a simple protocol: There is a
+                     minimum size and a target maximum size adjustable by the user. When
+                     data is requested that would reduce the store below the minimum level,
+                     more QRN data is requested from ANU to both fulfill the request and
+                     to refill the data store back to the "target" size.
+
 homepage:            http://github.com/BlackBrane/quantum-random-numbers/
 license:             MIT
 license-file:        LICENSE
@@ -38,14 +50,14 @@ library
                        mtl           >= 2.2 && <2.3,
                        directory     >=1.2
 
-  exposed-modules:     QRN,
-                       QRN.Manager
+  exposed-modules:     Quantum.Random,
+                       Quantum.Random.ErrorM,
+                       Quantum.Random.ANU,
+                       Quantum.Random.Store,
+                       Quantum.Random.Display,
+                       Quantum.Random.Manager
 
-  other-modules:       QRN.Codec,
-                       QRN.ANU,
-                       QRN.Store,
-                       QRN.Display,
-                       QRN.Monad,
+  other-modules:       Quantum.Random.Codec,
                        Paths_qrn
 
   default-language:    Haskell2010

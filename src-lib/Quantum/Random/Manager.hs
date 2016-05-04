@@ -1,9 +1,10 @@
 {-# LANGUAGE ViewPatterns #-}
 
-module QRN.Manager (main) where
+-- | Exports only the IO operation for managing the quantum random data.
+module Quantum.Random.Manager (main) where
 
-import QRN
-import QRN.Monad
+import Quantum.Random
+import Quantum.Random.Display
 
 import Prelude hiding (writeFile)
 import Data.Char (isDigit, toLower)
@@ -107,8 +108,8 @@ readCommand _                                  = Nothing
 ---- Describing/announcing commands ----
 
 bitsNBytes :: Int -> String
-bitsNBytes n = show n ++ b ++ show (n*8) ++ " bits)"
-   where b = if n /= 1 then " bytes (" else " byte ("
+bitsNBytes n = show n ++ bytes ++ show (n*8) ++ " bits)"
+   where bytes = if n /= 1 then " bytes (" else " byte ("
 
 description :: Command -> String
 description (Add n)         = "Adding " ++ bitsNBytes n ++ " of quantum random data to store"
@@ -133,7 +134,7 @@ interp (Add n)            = addToStore n
 interp (Observe n style)  = observe style n
 interp (Peek n style)     = peek style n
 interp (PeekAll style)    = peekAll style
-interp (Live n style)     = fetchQRN n >>= liftIO . display style
+interp (Live n style)     = fetchQRNErr n >>= liftIO . display style
 interp Fill               = fill
 interp RestoreDefaults    = liftIO restoreDefaults
 interp Reinitialize       = reinitialize
@@ -198,6 +199,7 @@ qrn = do str <- getInputLine "QRN> "
               Just c    -> lift (command c) *> qrn
               Nothing   -> lift errorMsg    *> qrn
 
+-- | The main function associated with the executable __qrn__. The interactive QRN manager program.
 main :: IO ()
 main = do args <- getArgs
           case args of

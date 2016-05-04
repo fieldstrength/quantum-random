@@ -1,6 +1,10 @@
 {-# LANGUAGE ViewPatterns #-}
 
-module QRN.Display (
+-- | Functionality for display of binary data. Seeing a visual representation of quantum random
+--   data lets a user visually verify that it is indeed random.
+--
+--   Usually to be imported via the __Quantum.Random__ module.
+module Quantum.Random.Display (
   DisplayStyle (..),
   parseStyle,
   display
@@ -13,13 +17,14 @@ import Data.Bits (testBit)
 import Data.Char (toLower)
 
 
+-- | Represents the five supported methods for displaying binary data.
 data DisplayStyle = Default
                   | Spins
                   | Bits
                   | ColorSpins
                   | ColorBits
 
-
+-- | Parse a string to one of the supported display styles.
 parseStyle :: String -> Maybe DisplayStyle
 parseStyle (map toLower -> "colors")      = Just Default
 parseStyle (map toLower -> "spins")       = Just Spins
@@ -81,7 +86,7 @@ w8bools w = testBit w <$> [0..7]
 bitColorShow :: [Bool] -> IO ()
 bitColorShow [a,b,c,d,e,f,g,h] = do
   let l1 = [a,b,c,d]
-  let l2 = [e,f,g,h]
+      l2 = [e,f,g,h]
   colorBlock (boolColor l1)
   putStr (bitStr l1)
   colorBlock (boolColor l2)
@@ -91,7 +96,7 @@ bitColorShow _ = error "bitColorShow: Bool list not of length 8"
 bitShow :: [Bool] -> IO ()
 bitShow [a,b,c,d,e,f,g,h] = do
   let l1 = [a,b,c,d]
-  let l2 = [e,f,g,h]
+      l2 = [e,f,g,h]
   putStr (bitStr l1)
   putStr (bitStr l2)
 bitShow _ = error "bitShow: Bool list not of length 8"
@@ -99,7 +104,7 @@ bitShow _ = error "bitShow: Bool list not of length 8"
 spinColorShow :: [Bool] -> IO ()
 spinColorShow [a,b,c,d,e,f,g,h] = do
   let l1 = [a,b,c,d]
-  let l2 = [e,f,g,h]
+      l2 = [e,f,g,h]
   colorBlock (boolColor l1)
   putStr (spinStr l1)
   colorBlock (boolColor l2)
@@ -109,7 +114,7 @@ spinColorShow _ = error "spinColorShow: Bool list not of length 8"
 spinShow :: [Bool] -> IO ()
 spinShow [a,b,c,d,e,f,g,h] = do
   let l1 = [a,b,c,d]
-  let l2 = [e,f,g,h]
+      l2 = [e,f,g,h]
   putStr (spinStr l1)
   putStr (spinStr l2)
 spinShow _ = error "spinShow: Bool list not of length 8"
@@ -117,7 +122,7 @@ spinShow _ = error "spinShow: Bool list not of length 8"
 colorShow :: [Bool] -> IO ()
 colorShow [a,b,c,d,e,f,g,h] = do
   let l1 = [a,b,c,d]
-  let l2 = [e,f,g,h]
+      l2 = [e,f,g,h]
   colorBlock (boolColor l1)
   colorBlock (boolColor l2)
 colorShow _ = error "colorShow: Bool list not of length 8"
@@ -135,5 +140,6 @@ displayByte ColorBits  = bitColorShow . w8bools
 displayBytes :: DisplayStyle -> [Word8] -> IO ()
 displayBytes = mapM_ . displayByte
 
+-- | Display a given list of bytes with the specified display style.
 display :: DisplayStyle -> [Word8] -> IO ()
 display s l = displayBytes s l *> putStrLn ""
