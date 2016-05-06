@@ -32,6 +32,7 @@ restoreDefaults   –  Restore default settings
 reinitialize      –  Restore default settings, and refill store to target size
 status            –  Display status of store and settings
 save [filepath]   –  save binary qrn file to specified file path
+load [filepath]   –  load binary file and append data to store
 set minSize       –  Set the number of bytes below which the store is refilled
 set targetSize    –  Set the number of bytes to have after refilling
 help/?            –  Display this text
@@ -85,7 +86,6 @@ type ErrorM a = ExceptT QError IO a
 The `Quantum.Random.ErrorM` module provides ways to change this context for convenience:
 
 ```haskell
-stringifyErrorM :: ErrorM a -> ExceptT String IO a
 handleErrors :: ErrorM () -> IO ()
 handleWithCrash :: ErrorM a -> IO a
 ```

@@ -5,13 +5,13 @@ module Quantum.Random.Manager (main) where
 
 import Quantum.Random
 
-import Prelude hiding (writeFile)
 import Data.Char (isDigit, toLower)
 import Control.Monad.Except (liftIO,lift)
 import System.Console.Haskeline (InputT, getInputLine, runInputT, defaultSettings)
-import Data.ByteString (writeFile)
+import Data.ByteString (writeFile,readFile)
 import System.Directory (doesFileExist)
 import System.Environment (getArgs)
+import Prelude hiding (readFile,writeFile)
 
 
 ---- Structure of commands ----
@@ -28,6 +28,7 @@ data Command = Add Int
              | Reinitialize
              | Status
              | Save String
+             | Load String
              | Set Setting Int
              | Help
              | Quit
@@ -47,6 +48,7 @@ helpMsg = unlines
   , "reinitialize      –  Restore default settings, and refill store to target size"
   , "status            –  Display status of store and settings"
   , "save [filepath]   –  save binary qrn file to specified file path"
+  , "load [filepath]   –  load binary file and append data to store"
   , "set minSize       –  Set the number of bytes below which the store is refilled"
   , "set targetSize    –  Set the number of bytes to have after refilling"
   , "help/?            –  Display this text"
@@ -95,6 +97,7 @@ readCommand (cwords -> ["restore"])            = Just RestoreDefaults
 readCommand (cwords -> ["reinitialize"])       = Just Reinitialize
 readCommand (cwords -> ["status"])             = Just Status
 readCommand (cwords -> ["save",path])          = Just (Save path)
+readCommand (cwords -> ["load",path])          = Just (Load path)
 readCommand (cwords -> ["help"])               = Just Help
 readCommand (cwords -> ["?"])                  = Just Help
 readCommand (cwords -> ["quit"])               = Just Quit
@@ -139,6 +142,7 @@ interp RestoreDefaults    = liftIO restoreDefaults
 interp Reinitialize       = reinitialize
 interp Status             = status
 interp (Save path)        = liftIO $ save path
+interp (Load path)        = liftIO $ load path
 interp (Set MinSize n)    = setMinStoreSize n
 interp (Set TargetSize n) = setTarStoreSize n
 interp Help               = liftIO $ putStrLn helpMsg
@@ -181,6 +185,16 @@ save path = do
                    case i of
                         "yes" -> writeFile path qs *> putStrLn "Data saved."
                         _     -> putStrLn "Save aborted."
+
+load :: String -> IO ()
+load path = do
+  exists <- doesFileExist path
+  case exists of
+       False -> putStrLn "Load failed. File does not exist."
+       True  -> do sf <- getStoreFile
+                   qs <- readFile sf
+                   ld <- readFile path
+                   writeFile sf (mappend qs ld)
 
 errorMsg :: IO ()
 errorMsg = do
