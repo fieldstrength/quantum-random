@@ -4,49 +4,43 @@
 module Quantum.Random.ErrorM (
 
 -- * Error-handling context
-  ErrorM,
 
-  QError (..),
+  ErrorM,
 
 -- * Converting the context
 
-  stringifyErrorM,
   handleErrors,
-  handleWithCrash
+  handleWithCrash,
+
+-- * Describing error conditions
+
+  responseErr,
+  settingsErr
 
 ) where
 
 import Control.Monad.Except (ExceptT (..), runExceptT)
-import Data.Bifunctor (first)
-
--- | Represents two possible error conditions that may be encountered: either in interpreting
---   data retrived from ANU, or while reading the local settings file.
-data QError = ParseResponseError String
-            | ParseSettingsError String
-
-instance Show QError where
-  show (ParseResponseError str) =
-    unlines ["Problem parsing response from ANU server:", str]
-  show (ParseSettingsError str) =
-    unlines ["Problem loading or interpreting settings file:", str]
 
 
--- | An alias for the monadic context in which store-related operations are run, supporting
---   the possible errors described by the 'QError' type.
-type ErrorM = ExceptT QError IO
+-- | Prepend a string to make ANU response parsing errors more descriptive.
+responseErr :: String -> String
+responseErr str = unlines ["Problem parsing response from ANU server:", str]
+
+-- | Prepend a string to make settings file parsing errors more descriptive.
+settingsErr :: String -> String
+settingsErr str = unlines ["Problem parsing settings file:", str]
 
 
--- | Convert the error-describing type from our custom datatype 'QError' to String,
---   in our small monad transformer stack.
-stringifyErrorM :: ErrorM a -> ExceptT String IO a
-stringifyErrorM = ExceptT . fmap (first show) . runExceptT
+-- | An alias for the monadic context in which prase errors are handled
+type ErrorM = ExceptT String IO
+
 
 -- | Any computation in the error-handling context that returns only unit can be
 --   turned into a (total) standard IO computation. Error information is reported via 'putStrLn'.
 handleErrors :: ErrorM () -> IO ()
 handleErrors mx = do x <- runExceptT mx
                      case x of
-                          Left er -> print er
+                          Left er -> putStrLn er
                           Right _ -> return ()
 
 -- | A computation in the error-handling context that returns an arbitrary value
@@ -54,5 +48,5 @@ handleErrors mx = do x <- runExceptT mx
 handleWithCrash :: ErrorM a -> IO a
 handleWithCrash mx = do x <- runExceptT mx
                         case x of
-                             Left er -> error $ show er
+                             Left er -> error er
                              Right y -> return y

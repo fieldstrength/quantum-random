@@ -26,7 +26,6 @@ import Quantum.Random.ErrorM
 
 import Data.Word            (Word8)
 import Data.Bits            (testBit)
-import Data.Aeson           (decode, eitherDecode)
 import Data.ByteString.Lazy (ByteString)
 import Network.HTTP.Conduit (simpleHttp)
 import Data.Bifunctor       (first)

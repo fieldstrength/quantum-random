@@ -23,6 +23,9 @@ module Quantum.Random.Store (
 -- ** Store data retrieval
 
   extract,
+
+-- ** Store data display
+
   observe,
   peek,
   peekAll,
@@ -51,13 +54,12 @@ import Quantum.Random.ErrorM
 
 import Prelude hiding (readFile, writeFile)
 import System.IO (openBinaryFile, IOMode (..), hClose)
-import Data.Aeson (encode, decode, eitherDecode)
+import Data.Aeson (encode)
 import Data.Word (Word8)
 import Data.ByteString (ByteString, readFile, writeFile, pack, unpack)
 import qualified Data.ByteString as BS (length)
-import qualified Data.ByteString.Lazy as Lazy (ByteString,readFile,writeFile,pack,unpack,append,
-                                               hPut,hGetContents,fromStrict,toStrict)
-import Control.Monad.Except (ExceptT (..), runExceptT)
+import qualified Data.ByteString.Lazy as Lazy (pack,hPut,fromStrict,toStrict)
+import Control.Monad.Except (ExceptT (..))
 import Control.Monad.IO.Class (liftIO)
 
 
@@ -160,7 +162,6 @@ refill = getTargetStoreSize >>= fetchQRNErr >>= liftIO . putStoreBytes
 --   minimum number of QRN bytes it is filled back to the target size.
 extract :: Int -> ErrorM [Word8]
 extract n = do
-  storefile <- liftIO getStoreFile
   size <- liftIO storeSize
   qs <- liftIO getStoreBytes
   st <- getSettings
@@ -173,6 +174,7 @@ extract n = do
        _  -> do let (xs,ys) = splitAt n qs
                 liftIO $ putStoreBytes ys
                 return xs
+
 
 -- | Destructively view the specified number of bytes, via 'extract'.
 --   The name connotes the irreversibility of quantum measurement.

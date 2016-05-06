@@ -22,7 +22,6 @@ import Data.ByteString.Lazy (ByteString)
 import Data.ByteString.Lazy.Char8 (pack,unpack)
 import Text.Regex.Posix ((=~))
 import Data.Bifunctor (first)
-import Control.Monad.Except (ExceptT (..), runExceptT)
 
 
 -- | Corresponds to the JSON object returned by ANU, minus 'q' prefixes.
@@ -43,6 +42,7 @@ instance FromJSON QSettings
 instance ToJSON   QSettings
 
 -- | Default settings.
+defaults :: QSettings
 defaults = QSettings 200 800
 
 -- | Update the minimum store size field of a settings record.
@@ -59,22 +59,24 @@ updateTarSize n qs = qs { targetStoreSize = n }
 process :: ByteString -> ByteString
 process = pack . repData . repType . repLength . unpack
 
-
+repData :: String -> String
 repData = replaceWord "data" "qdata"
 
+repType :: String -> String
 repType = replaceWord "type" "qtype"
 
+repLength :: String -> String
 repLength = replaceWord "length" "qlength"
 
 
 replaceWord :: String -> String -> String -> String
-replaceWord x y s = let (a,b,c) = s =~ x :: (String, String, String)
+replaceWord x y s = let (a,_,c) = s =~ x :: (String, String, String)
                     in  a ++ y ++ c
 
 -- | From a Bytestring, attempt to decode a response from ANU ('QResponse') within the custom error context.
-parseResponse :: ByteString -> Either QError QResponse
-parseResponse = first ParseResponseError . eitherDecode . process
+parseResponse :: ByteString -> Either String QResponse
+parseResponse = first responseErr . eitherDecode . process
 
 -- | From a Bytestring, attempt to decode a settings record within the custom error context.
-parseSettings :: ByteString -> Either QError QSettings
-parseSettings = first ParseSettingsError . eitherDecode
+parseSettings :: ByteString -> Either String QSettings
+parseSettings = first settingsErr . eitherDecode

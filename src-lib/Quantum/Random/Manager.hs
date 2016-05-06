@@ -4,13 +4,11 @@
 module Quantum.Random.Manager (main) where
 
 import Quantum.Random
-import Quantum.Random.Display
 
 import Prelude hiding (writeFile)
 import Data.Char (isDigit, toLower)
-import Data.Maybe (isJust)
-import Control.Monad.Except (ExceptT,liftIO,lift)
-import System.Console.Haskeline (InputT, getInputLine, runInputT, defaultSettings, outputStrLn)
+import Control.Monad.Except (liftIO,lift)
+import System.Console.Haskeline (InputT, getInputLine, runInputT, defaultSettings)
 import Data.ByteString (writeFile)
 import System.Directory (doesFileExist)
 import System.Environment (getArgs)
@@ -34,6 +32,7 @@ data Command = Add Int
              | Help
              | Quit
 
+helpMsg :: String
 helpMsg = unlines
   [ ""
   , "======= Available commands ======="
@@ -156,15 +155,15 @@ execCommand _                       = errorMsg
 
 status :: ErrorM ()
 status = do
-  min <- getMinStoreSize
-  tar <- getTargetStoreSize
+  smin <- getMinStoreSize
+  star <- getTargetStoreSize
   liftIO $ do siz <- storeSize
               sto <- getStoreFile
               mapM_ putStrLn
                 [ "Store contains " ++ bitsNBytes siz ++ " of quantum random data"
                 , ""
-                , "Minimum store size set to " ++ bitsNBytes min ++ "."
-                , "Target store size set to " ++ bitsNBytes tar ++ "."
+                , "Minimum store size set to " ++ bitsNBytes smin ++ "."
+                , "Target store size set to " ++ bitsNBytes star ++ "."
                 , ""
                 , "Local data store location:"
                 , sto
