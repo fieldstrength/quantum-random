@@ -13,7 +13,7 @@ module Quantum.Random.Codec (
 
 ) where
 
-import Quantum.Random.ErrorM
+import Quantum.Random.Exceptions
 
 import GHC.Generics (Generic)
 import Data.Aeson (FromJSON,ToJSON,eitherDecode)
@@ -73,10 +73,10 @@ replaceWord :: String -> String -> String -> String
 replaceWord x y s = let (a,_,c) = s =~ x :: (String, String, String)
                     in  a ++ y ++ c
 
--- | From a Bytestring, attempt to decode a response from ANU ('QResponse') within the custom error context.
-parseResponse :: ByteString -> Either String QResponse
-parseResponse = first responseErr . eitherDecode . process
+-- | From a Bytestring, attempt to decode a response from ANU ('QResponse').
+parseResponse :: ByteString -> Either QRNException QResponse
+parseResponse = first ParseResponseError . eitherDecode . process
 
--- | From a Bytestring, attempt to decode a settings record within the custom error context.
-parseSettings :: ByteString -> Either String QSettings
-parseSettings = first settingsErr . eitherDecode
+-- | From a Bytestring, attempt to decode a settings record.
+parseSettings :: ByteString -> Either QRNException QSettings
+parseSettings = first ParseSettingsError . eitherDecode

@@ -3,7 +3,7 @@
 -- | Functionality for display of binary data. Seeing a visual representation of quantum random
 --   data lets a user visually verify that it is indeed random.
 --
---   Usually to be imported via the __Quantum.Random__ module.
+--   Usually to be imported via the "Quantum.Random" module.
 module Quantum.Random.Display (
   DisplayStyle (..),
   parseStyle,

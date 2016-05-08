@@ -51,7 +51,7 @@ library
                        directory     >=1.2
 
   exposed-modules:     Quantum.Random,
-                       Quantum.Random.ErrorM,
+                       Quantum.Random.Exceptions,
                        Quantum.Random.ANU,
                        Quantum.Random.Store,
                        Quantum.Random.Display,
