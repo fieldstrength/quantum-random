@@ -81,30 +81,35 @@ cwords :: String -> [String]
 cwords = words . map toLower
 
 readCommand :: String -> Maybe Command
-readCommand (cwords -> ["add",n])              = Add <$> readInt n
-readCommand (cwords -> ["peekall"])            = Just (PeekAll Default)
-readCommand (cwords -> ["peekall",s])          = PeekAll <$> parseStyle s
-readCommand (cwords -> ["peek","all"])         = Just (PeekAll Default)
-readCommand (cwords -> ["peek","all",s])       = PeekAll <$> parseStyle s
-readCommand (cwords -> ["observe",n])          = Observe <$> readInt n <*> Just Default
-readCommand (cwords -> ["observe",n,s])        = Observe <$> readInt n <*> parseStyle s
-readCommand (cwords -> ["peek",n])             = Peek <$> readInt n <*> Just Default
-readCommand (cwords -> ["peek",n,s])           = Peek <$> readInt n <*> parseStyle s
-readCommand (cwords -> ["live",n])             = Live <$> readInt n <*> Just Default
-readCommand (cwords -> ["live",n,s])           = Live <$> readInt n <*> parseStyle s
-readCommand (cwords -> ["fill"])               = Just Fill
-readCommand (cwords -> ["restore"])            = Just RestoreDefaults
-readCommand (cwords -> ["reinitialize"])       = Just Reinitialize
-readCommand (cwords -> ["status"])             = Just Status
-readCommand (cwords -> ["save",path])          = Just (Save path)
-readCommand (cwords -> ["load",path])          = Just (Load path)
-readCommand (cwords -> ["help"])               = Just Help
-readCommand (cwords -> ["?"])                  = Just Help
-readCommand (cwords -> ["quit"])               = Just Quit
-readCommand (cwords -> ["q"])                  = Just Quit
-readCommand (cwords -> ["set","minsize",n])    = Set MinSize <$> readInt n
-readCommand (cwords -> ["set","targetsize",n]) = Set TargetSize <$> readInt n
-readCommand _                                  = Nothing
+readCommand (cwords -> ["add",n])        = Add <$> readInt n
+readCommand (cwords -> ["peekall"])      = Just (PeekAll Default)
+readCommand (cwords -> ["peekall",s])    = PeekAll <$> parseStyle s
+readCommand (cwords -> ["peek","all"])   = Just (PeekAll Default)
+readCommand (cwords -> ["peek","all",s]) = PeekAll <$> parseStyle s
+readCommand (cwords -> ["observe",n])    = Observe <$> readInt n <*> Just Default
+readCommand (cwords -> ["observe",n,s])  = Observe <$> readInt n <*> parseStyle s
+readCommand (cwords -> ["peek",n])       = Peek <$> readInt n <*> Just Default
+readCommand (cwords -> ["peek",n,s])     = Peek <$> readInt n <*> parseStyle s
+readCommand (cwords -> ["live",n])       = Live <$> readInt n <*> Just Default
+readCommand (cwords -> ["live",n,s])     = Live <$> readInt n <*> parseStyle s
+readCommand (cwords -> ["fill"])         = Just Fill
+readCommand (cwords -> ["restore"])      = Just RestoreDefaults
+readCommand (cwords -> ["reinitialize"]) = Just Reinitialize
+readCommand (cwords -> ["status"])       = Just Status
+readCommand (cwords -> ["save",path])    = Just (Save path)
+readCommand (cwords -> ["load",path])    = Just (Load path)
+readCommand (cwords -> ["help"])         = Just Help
+readCommand (cwords -> ["?"])            = Just Help
+readCommand (cwords -> ["quit"])         = Just Quit
+readCommand (cwords -> ["q"])            = Just Quit
+readCommand (cwords -> ["set",st,n])     = Set <$> readSetting st <*> readInt n
+readCommand _                            = Nothing
+
+readSetting :: String -> Maybe Setting
+readSetting (cwords -> ["minsize"])    = Just MinSize
+readSetting (cwords -> ["tarsize"])    = Just TargetSize
+readSetting (cwords -> ["targetsize"]) = Just TargetSize
+readSetting _                          = Nothing
 
 
 ---- Describing/announcing commands ----
