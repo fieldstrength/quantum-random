@@ -43,8 +43,10 @@ Commands are case-insensitive.
 
 #### Display options
 
-By default, data is displayed by showing a color for every 4 bits (every half-byte). One can also specify the data to be displayed as binary,
-or equivalently with up/down arrows representing quantum mechanical spin states. Either of these latter two can be combined with the colors as well (thus explicating the encoding).
+By default, data is displayed by showing a color for every 4 bits (every half-byte). One can also
+specify the data to be displayed as binary, or equivalently with up/down arrows representing quantum
+mechanical spin states. Either of these latter two can be combined with the colors as well (thus
+explicating the encoding).
 
 So the available display modifiers are:
 * `colors` (the default)
@@ -61,34 +63,27 @@ Simply type these modifiers after any display command. For example:
 
 ### Usage in Haskell code
 
-The most basic functionality, to retrieve data directly from ANU, is provided by these functions
-from the `QRN.ANU` module yielding either a list of bytes or a list of booleans. In both cases the
-argument specifies the number of bytes.
+All user-facing functionality may be accessed from the `Quantum.Random` module, though a user can
+also opt to import particular constituent modules if only a subset of the functionality is needed.
+
+The most basic service is to retrieve data directly from ANU, which is provided by functions
+from the `Quantum.Random.ANU` module. There are two variants yielding either a list of bytes or a
+list of booleans. In both cases the argument specifies the number of bytes.
 
 ```haskell
 fetchQRN :: Int -> IO [Word8]
 fetchQRNBits :: Int -> IO [Bool]
 ```
 
-Operations involving the data store are exported by the `QRN.Store`. An important one is
+Operations involving the data store are exported by `Quantum.Random.Store`. An important one is
 
 ```haskell
-extract :: Int -> ErrorM [Word8]
+extract :: Int -> IO [Word8]
 ```
-which invokes the machinery to retrieve more data and update the store as needed.
+This also invokes the machinery to retrieve more data and refill the store as needed.
 
-This and other functions use a custom error handling context via the `ExceptT` monad transformer with a custom error data type.
-
-```haskell
-type ErrorM a = ExceptT QError IO a
-```
-
-The `Quantum.Random.ErrorM` module provides ways to change this context for convenience:
-
-```haskell
-handleErrors :: ErrorM () -> IO ()
-handleWithCrash :: ErrorM a -> IO a
-```
+Most of the IO actions in the package use a custom exception type to handle the unlikely
+error conditions that may be encountered. See the `Quantum.Random.Exceptions` module for details.
 
 ### Future work
 

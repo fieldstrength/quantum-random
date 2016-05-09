@@ -179,7 +179,7 @@ extract n = do
 -- | Destructively view the specified number of bytes, via 'extract'.
 --   The name connotes the irreversibility of quantum measurement.
 --   Measuring quantum data (analogously, viewing or using) expends them as a randomness resource.
---   Thus they are discarded.
+--   Thus they are discarded. Use 'peek' if instead you wish the data to be kept.
 observe :: DisplayStyle -> Int -> IO ()
 observe s n = extract n >>= display s
 
