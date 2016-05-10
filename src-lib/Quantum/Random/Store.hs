@@ -52,13 +52,14 @@ import Quantum.Random.ANU
 import Quantum.Random.Display
 import Quantum.Random.Exceptions
 
-import Prelude hiding (readFile, writeFile)
+import Control.Concurrent (forkIO)
 import System.IO (openBinaryFile, IOMode (..), hClose)
 import Data.Aeson (encode)
 import Data.Word (Word8)
 import Data.ByteString (ByteString, readFile, writeFile, pack, unpack)
 import qualified Data.ByteString as BS (length)
 import qualified Data.ByteString.Lazy as Lazy (pack,hPut,fromStrict,toStrict)
+import Prelude hiding (readFile, writeFile)
 
 
 ---- Data/Settings file locations ----
@@ -165,16 +166,20 @@ extract n = do
   size <- storeSize
   qs <- getStoreBytes
   st <- getSettings
-  case (compare n (size - minStoreSize st)) of
-       GT -> do let needed = targetStoreSize st + n - size
-                anu <- fetchQRN needed
-                let (xs,ys) = splitAt n $ qs ++ anu
-                putStoreBytes ys
-                return xs
-       _  -> do let (xs,ys) = splitAt n qs
-                putStoreBytes ys
-                return xs
-
+  let delta = size - minStoreSize st
+  let needed = targetStoreSize st + n - size
+  case (compare n delta, compare n size) of
+       (GT,GT) -> do anu <- fetchQRN needed
+                     let (xs,ys) = splitAt n $ qs ++ anu
+                     putStoreBytes ys
+                     return xs
+       (GT,_)  -> do forkIO $ addToStore needed
+                     let (xs,ys) = splitAt n qs
+                     putStoreBytes ys
+                     return xs
+       _       -> do let (xs,ys) = splitAt n qs
+                     putStoreBytes ys
+                     return xs
 
 -- | Destructively view the specified number of bytes, via 'extract'.
 --   The name connotes the irreversibility of quantum measurement.

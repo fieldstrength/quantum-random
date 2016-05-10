@@ -169,7 +169,7 @@ status = do
   siz <- storeSize
   sto <- getStoreFile
   mapM_ putStrLn
-    [ "Store contains " ++ bitsNBytes siz ++ " of quantum random data"
+    [ "Store contains " ++ bitsNBytes siz ++ " of quantum random data."
     , ""
     , "Minimum store size set to " ++ bitsNBytes smin ++ "."
     , "Target store size set to " ++ bitsNBytes star ++ "."
