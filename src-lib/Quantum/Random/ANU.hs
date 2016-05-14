@@ -4,20 +4,17 @@
 --   Usually to be imported via the "Quantum.Random" module.
 module Quantum.Random.ANU (
 
--- ** Non-total retrieval within IO
+-- ** QRN data retrieval
   fetchQRN,
   fetchQRNBits,
-
--- ** Byte-to-boolean conversion
-  w8bools
 
 ) where
 
 import Quantum.Random.Codec
 import Quantum.Random.Exceptions
 
-import Data.Word (Word8)
-import Data.Bits (testBit)
+import Data.Word            (Word8)
+import Data.Bits            (testBit)
 import Data.ByteString.Lazy (ByteString)
 import Network.HTTP.Conduit (simpleHttp)
 

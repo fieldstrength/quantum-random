@@ -1,23 +1,49 @@
 {-# LANGUAGE ViewPatterns #-}
 
--- | Exports only the IO operation for managing the quantum random data.
-module Quantum.Random.Manager (main) where
+-- | Exports the command line interface program ('main') for managing the quantum random data, and
+--   some related functions that would be useful for any variant implementation.
+module Quantum.Random.Interface (
+
+-- * Abstract command representation
+  Command (..),
+  Setting (..),
+  DisplayStyle (..),
+
+-- * Interpreting commands
+  interp,
+  command,
+
+-- * Controlled-access commands
+-- | These are variants of the above command execution operations that use 'AccessControl' to
+--   ensure operations involving the local files do not interfere. To use them, first use
+--   'initAccessControl' and then make sure that /that same/ 'AccessControl' is passed to the
+--   IO operations that take it as an argument.
+  interpSafe,
+  commandSafe,
+
+-- * String-based invocation
+  execCommand,
+
+-- * Main executable
+  main,
+
+) where
 
 import Quantum.Random
 
-import Data.Char (isDigit, toLower)
+import Data.Char                 (isDigit, toLower)
 import Control.Monad.Trans.Class (lift)
-import System.Console.Haskeline (InputT, getInputLine, runInputT, defaultSettings)
-import Data.ByteString (writeFile,readFile)
-import System.Directory (doesFileExist)
-import System.Environment (getArgs)
-import Prelude hiding (readFile,writeFile)
+import System.Console.Haskeline  (InputT, getInputLine, runInputT, defaultSettings)
+import System.Environment        (getArgs)
 
 
 ---- Structure of commands ----
 
+-- | Represents the settings saved in the settings file. This data type may be
+--   extended in the future.
 data Setting = MinSize | TargetSize
 
+-- | Represents the supported commands.
 data Command = Add Int
              | Observe Int DisplayStyle
              | Peek Int DisplayStyle
@@ -136,6 +162,9 @@ announce c = let str = description c in if str == "" then pure () else putStrLn 
 
 ---- Interpreting commands to actions ----
 
+-- | For a given command, as described by the 'Command' data type, interpret to the corresponding
+--   IO action. This is the simple version, whereas 'interpSafe' is ensures these actions cannot
+--   interfere as they access local files.
 interp :: Command -> IO ()
 interp (Add n)            = addToStore n
 interp (Observe n style)  = observe style n
@@ -149,13 +178,32 @@ interp Status             = status
 interp (Save path)        = save path
 interp (Load path)        = load path
 interp (Set MinSize n)    = setMinStoreSize n
-interp (Set TargetSize n) = setTarStoreSize n
+interp (Set TargetSize n) = setTargetStoreSize n
 interp Help               = putStrLn helpMsg
 interp Quit               = pure ()
 
+-- | Controlled-access variant of 'interp'.
+interpSafe :: AccessControl -> Command -> IO ()
+interpSafe a   (Add n)       = addSafely a n
+interpSafe a   (Observe n s) = observeSafely a s n
+interpSafe _ c@(Live _ _)    = interp c
+interpSafe _ c@(Save _)      = interp c
+interpSafe _ c@Help          = interp c
+interpSafe _ c@Quit          = interp c
+interpSafe a c               = withAccess a (interp c)
+
+-- | Perform command, via 'interp', after printing a description to STDOUT, with any exceptions
+--   reported there as well.
 command :: Command -> IO ()
 command c = handleQRNExceptions (announce c *> interp c)
 
+-- | Controlled-access variant of 'command'. Performs command via 'interpSafe' after printing a
+--   description to STDOUT, with any exceptions reported there as well.
+commandSafe :: AccessControl -> Command -> IO ()
+commandSafe sys c = handleQRNExceptions (announce c *> interpSafe sys c)
+
+-- | Given a string, attempt to interpret it as an IO action, and either perform it or report
+--   the parse failure.
 execCommand :: String -> IO ()
 execCommand (readCommand -> Just c) = command c
 execCommand _                       = errorMsg
@@ -179,28 +227,6 @@ status = do
     , ""
     ]
 
-save :: String -> IO ()
-save path = do
-  exists <- doesFileExist path
-  qs <- getStore
-  case exists of
-       False -> writeFile path qs
-       True  -> do putStrLn "File already exists. Enter 'yes' to overwrite."
-                   i <- getLine
-                   case i of
-                        "yes" -> writeFile path qs *> putStrLn "Data saved."
-                        _     -> putStrLn "Save aborted."
-
-load :: String -> IO ()
-load path = do
-  exists <- doesFileExist path
-  case exists of
-       False -> putStrLn "Load failed. File does not exist."
-       True  -> do sf <- getStoreFile
-                   qs <- readFile sf
-                   ld <- readFile path
-                   writeFile sf (mappend qs ld)
-
 errorMsg :: IO ()
 errorMsg = do
   putStrLn "***** QRN Error: Couldn't parse command."
@@ -209,17 +235,17 @@ errorMsg = do
 
 ---- Core program code ----
 
-qrn :: InputT IO ()
-qrn = do str <- getInputLine "QRN> "
-         let jc = readCommand =<< str
-         case jc of
-              Just Quit -> pure ()
-              Just c    -> lift (command c) *> qrn
-              Nothing   -> lift errorMsg    *> qrn
+qrn :: AccessControl -> InputT IO ()
+qrn ac = do str <- getInputLine "QRN> "
+            let jc = readCommand =<< str
+            case jc of
+                 Just Quit -> pure ()
+                 Just c    -> lift (commandSafe ac c) *> qrn ac
+                 Nothing   -> lift errorMsg           *> qrn ac
 
--- | The main function associated with the executable __qrn__. The interactive QRN manager program.
+-- | The main function associated with the executable @qrn@. The interactive QRN manager program.
 main :: IO ()
 main = do args <- getArgs
           case args of
-               [] -> runInputT defaultSettings qrn
+               [] -> initAccessControl >>= runInputT defaultSettings . qrn
                _  -> execCommand (unwords args)

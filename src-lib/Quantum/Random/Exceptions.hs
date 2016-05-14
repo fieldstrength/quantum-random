@@ -19,9 +19,9 @@ module Quantum.Random.Exceptions (
 
 ) where
 
-import Data.Typeable
-import Control.Exception
-
+import Data.Typeable        (Typeable)
+import Control.Exception    (Exception, handle, throw)
+import Network.HTTP.Conduit (HttpException)
 
 -- | Represents two possible error conditions that may be encountered: in interpreting
 --   data retrived from ANU, or while reading the local settings file.
@@ -34,7 +34,7 @@ instance Show QRNException where
 
 instance Exception QRNException
 
--- | Perform an IO computation that might encounter a problem corresponding to a 'QRNException'.
+-- | Perform an IO computation that might encounter a problem corresponding to a 'Exception'.
 --   If so, throw the exception, if not just return the value.
 throwLeft :: Exception e => IO (Either e a) -> IO a
 throwLeft ioer = do
@@ -48,6 +48,10 @@ throwLeft ioer = do
 qrnExceptHandler :: QRNException -> IO ()
 qrnExceptHandler = print
 
--- | Apply to an IO action. When a 'QRNException' is encountered, it is reported instead of crashing.
+httpExceptHandler :: HttpException -> IO ()
+httpExceptHandler e = putStr "HTTP exception: " *> print e
+
+-- | Apply to an IO action. When either a 'QRNException' or 'HttpException' is encountered,
+--   it is reported instead of crashing.
 handleQRNExceptions :: IO () -> IO ()
-handleQRNExceptions = handle qrnExceptHandler
+handleQRNExceptions = handle qrnExceptHandler . handle httpExceptHandler

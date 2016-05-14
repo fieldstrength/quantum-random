@@ -10,14 +10,15 @@ module Quantum.Random.Display (
   display
 ) where
 
-import System.Console.ANSI
+import System.Console.ANSI      (Color (..), ColorIntensity (..), setSGR)
 import System.Console.Ansigraph (AnsiColor (..), setFG, clear)
-import Data.Word (Word8)
-import Data.Bits (testBit)
-import Data.Char (toLower)
+import Data.Word                (Word8)
+import Data.Bits                (testBit)
+import Data.Char                (toLower)
 
 
--- | Represents the five supported methods for displaying binary data.
+-- | Represents the supported methods for displaying binary data.
+--   This data type may be extended in the future.
 data DisplayStyle = Default
                   | Spins
                   | Bits

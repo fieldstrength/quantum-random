@@ -15,13 +15,13 @@ module Quantum.Random.Codec (
 
 import Quantum.Random.Exceptions
 
-import GHC.Generics (Generic)
-import Data.Aeson (FromJSON,ToJSON,eitherDecode)
-import Data.Text (Text)
-import Data.ByteString.Lazy (ByteString)
+import GHC.Generics               (Generic)
+import Data.Aeson                 (FromJSON,ToJSON,eitherDecode)
+import Data.Text                  (Text)
+import Data.ByteString.Lazy       (ByteString)
 import Data.ByteString.Lazy.Char8 (pack,unpack)
-import Text.Regex.Posix ((=~))
-import Data.Bifunctor (first)
+import Text.Regex.Posix           ((=~))
+import Data.Bifunctor             (first)
 
 
 -- | Corresponds to the JSON object returned by ANU, minus 'q' prefixes.
@@ -43,7 +43,7 @@ instance ToJSON   QSettings
 
 -- | Default settings.
 defaults :: QSettings
-defaults = QSettings 200 800
+defaults = QSettings 400 800
 
 -- | Update the minimum store size field of a settings record.
 updateMinSize :: Int -> QSettings -> QSettings

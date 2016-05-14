@@ -4,10 +4,12 @@ module Quantum.Random (
   module Quantum.Random.ANU,
   module Quantum.Random.Store,
   module Quantum.Random.Display,
-  module Quantum.Random.Exceptions
+  module Quantum.Random.Exceptions,
+  module Quantum.Random.Semaphore
 ) where
 
 import Quantum.Random.ANU
 import Quantum.Random.Store
 import Quantum.Random.Display
 import Quantum.Random.Exceptions
+import Quantum.Random.Semaphore
