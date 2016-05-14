@@ -163,7 +163,7 @@ announce c = let str = description c in if str == "" then pure () else putStrLn 
 ---- Interpreting commands to actions ----
 
 -- | For a given command, as described by the 'Command' data type, interpret to the corresponding
---   IO action. This is the simple version, whereas 'interpSafe' is ensures these actions cannot
+--   IO action. This is the simple version, whereas 'interpSafe' ensures these actions cannot
 --   interfere as they access local files.
 interp :: Command -> IO ()
 interp (Add n)            = addToStore n
