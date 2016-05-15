@@ -18,9 +18,9 @@ import Data.Bits            (testBit)
 import Data.ByteString.Lazy (ByteString)
 import Network.HTTP.Conduit (simpleHttp)
 
--- Returns numbers between 0-255 (8 bits)
+
 anuURL :: Int -> String
-anuURL n = "http://qrng.anu.edu.au/API/jsonI.php?length=" ++ show n ++ "&type=uint8"
+anuURL n = "https://qrng.anu.edu.au/API/jsonI.php?length=" ++ show n ++ "&type=uint8"
 
 getANU :: Int -> IO ByteString
 getANU = simpleHttp . anuURL
@@ -29,19 +29,16 @@ getANU = simpleHttp . anuURL
 fetchQResponse :: Int -> IO QResponse
 fetchQResponse n = throwLeft $ parseResponse <$> getANU n
 
-fetchQRNInts :: Int -> IO [Int]
-fetchQRNInts n = qdata <$> fetchQResponse n
 
--- | Fetch QRN data from ANU server as a linked list of bytes. Problems are handled via the custom
---   exception data type 'QRNException'.
+-- | Fetch QRN data from ANU server as a linked list of bytes via HTTPS. Problems are handled via
+--   the custom exception data type 'QRNException'.
 fetchQRN :: Int -> IO [Word8]
-fetchQRN n = map fromIntegral <$> fetchQRNInts n
+fetchQRN n = map fromIntegral . qdata <$> fetchQResponse n
 
--- | Fetch QRN data from ANU server as a list of booleans. Problems are handled via the custom
---   exception data type 'QRNException'.
+-- | Fetch QRN data from ANU server as a list of booleans via HTTPS. Problems are handled via the
+--   custom exception data type 'QRNException'.
 fetchQRNBits :: Int -> IO [Bool]
 fetchQRNBits n = concat . map w8bools <$> fetchQRN n
-
 
 -- Converts a byte (Word8) to the corresponding list of 8 boolean values.
 -- 'Bits' type class numbers bits from least to most significant, thus the reverse
