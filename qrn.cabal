@@ -1,5 +1,5 @@
 name:                qrn
-version:             0.3.0.0
+version:             0.4.0.0
 synopsis:            Retrieve, store and manage real quantum random numbers.
 
 description:         Retrieve, store, manage and visualize real quantum random numbers

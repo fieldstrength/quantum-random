@@ -5,9 +5,11 @@
 --
 --   Usually to be imported via the "Quantum.Random" module.
 module Quantum.Random.Display (
+
   DisplayStyle (..),
   parseStyle,
   display
+
 ) where
 
 import System.Console.ANSI      (Color (..), ColorIntensity (..), setSGR)
@@ -15,26 +17,70 @@ import System.Console.Ansigraph (AnsiColor (..), setFG, clear)
 import Data.Word                (Word8)
 import Data.Bits                (testBit)
 import Data.Char                (toLower)
+import Numeric                  (showHex)
 
 
 -- | Represents the supported methods for displaying binary data.
 --   This data type may be extended in the future.
-data DisplayStyle = Default
+data DisplayStyle = Colors
                   | Spins
                   | Bits
+                  | Hex
                   | ColorSpins
                   | ColorBits
+                  | ColorHex
 
 -- | Parse a string to one of the supported display styles.
 parseStyle :: String -> Maybe DisplayStyle
-parseStyle (map toLower -> "colors")      = Just Default
+parseStyle (map toLower -> "colors")      = Just Colors
 parseStyle (map toLower -> "spins")       = Just Spins
 parseStyle (map toLower -> "bits")        = Just Bits
 parseStyle (map toLower -> "binary")      = Just Bits
+parseStyle (map toLower -> "hex")         = Just Hex
+parseStyle (map toLower -> "hexidecimal") = Just Hex
 parseStyle (map toLower -> "colorspins")  = Just ColorSpins
 parseStyle (map toLower -> "colorbits")   = Just ColorBits
 parseStyle (map toLower -> "colorbinary") = Just ColorBits
+parseStyle (map toLower -> "colorhex")    = Just ColorHex
 parseStyle _                              = Nothing
+
+
+---- Interpreting as colors ----
+
+-- 'Bits' type class numbers bits from least to most significant, thus the reverse
+w8bools :: Word8 -> [Bool]
+w8bools w = reverse $ testBit w <$> [0..7]
+
+type EightBits = (Bool,Bool,Bool,Bool,Bool,Bool,Bool,Bool)
+type FourBits  = (Bool,Bool,Bool,Bool)
+
+byteBits :: Word8 -> EightBits
+byteBits (w8bools -> [a,b,c,d,e,f,g,h]) = (a,b,c,d,e,f,g,h)
+byteBits _ = error "byteBits: Impossible case: w8bools produces length-8 list"
+
+sepByte :: Word8 -> (FourBits, FourBits)
+sepByte (byteBits -> (a,b,c,d,e,f,g,h)) = ((a,b,c,d), (e,f,g,h))
+
+color :: FourBits -> AnsiColor
+color (False,False,False,False) = AnsiColor Dull Black
+color (False,False,False,True)  = AnsiColor Vivid Black
+color (False,False,True,False)  = AnsiColor Dull Red
+color (False,False,True,True)   = AnsiColor Vivid Red
+color (False,True,False,False)  = AnsiColor Dull Green
+color (False,True,False,True)   = AnsiColor Vivid Green
+color (False,True,True,False)   = AnsiColor Dull Yellow
+color (False,True,True,True)    = AnsiColor Vivid Yellow
+color (True,False,False,False)  = AnsiColor Dull Blue
+color (True,False,False,True)   = AnsiColor Vivid Blue
+color (True,False,True,False)   = AnsiColor Dull Magenta
+color (True,False,True,True)    = AnsiColor Vivid Magenta
+color (True,True,False,False)   = AnsiColor Dull Cyan
+color (True,True,False,True)    = AnsiColor Vivid Cyan
+color (True,True,True,False)    = AnsiColor Dull White
+color (True,True,True,True)     = AnsiColor Vivid White
+
+colorBlock :: AnsiColor -> IO ()
+colorBlock c = setSGR [setFG c] *> putStr "█" *> clear
 
 
 ---- Interpreting as characters ----
@@ -43,100 +89,77 @@ spinChar :: Bool -> Char
 spinChar False = '↑'
 spinChar True  = '↓'
 
-spinStr :: [Bool] -> String
-spinStr = map spinChar
+spinStr :: FourBits -> String
+spinStr (a,b,c,d) = [spinChar a, spinChar b, spinChar c, spinChar d]
 
 bitChar :: Bool -> Char
 bitChar False = '0'
 bitChar True  = '1'
 
-bitStr :: [Bool] -> String
-bitStr = map bitChar
+bitStr :: FourBits -> String
+bitStr (a,b,c,d) = [bitChar a, bitChar b, bitChar c, bitChar d]
 
+hexShow :: Word8 -> String
+hexShow w = let hx = showHex w ""
+            in  if length hx < 2 then '0' : hx else hx
 
----- Interpreting as colors ----
+hexChar1 :: Word8 -> Char
+hexChar1 = head . hexShow
 
-boolColor :: [Bool] -> AnsiColor
-boolColor [False,False,False,False] = AnsiColor Dull Black
-boolColor [False,False,False,True]  = AnsiColor Vivid Black
-boolColor [False,False,True,False]  = AnsiColor Dull Red
-boolColor [False,False,True,True]   = AnsiColor Vivid Red
-boolColor [False,True,False,False]  = AnsiColor Dull Green
-boolColor [False,True,False,True]   = AnsiColor Vivid Green
-boolColor [False,True,True,False]   = AnsiColor Dull Yellow
-boolColor [False,True,True,True]    = AnsiColor Vivid Yellow
-boolColor [True,False,False,False]  = AnsiColor Dull Blue
-boolColor [True,False,False,True]   = AnsiColor Vivid Blue
-boolColor [True,False,True,False]   = AnsiColor Dull Magenta
-boolColor [True,False,True,True]    = AnsiColor Vivid Magenta
-boolColor [True,True,False,False]   = AnsiColor Dull Cyan
-boolColor [True,True,False,True]    = AnsiColor Vivid Cyan
-boolColor [True,True,True,False]    = AnsiColor Dull White
-boolColor [True,True,True,True]     = AnsiColor Vivid White
-boolColor _ = error "boolColor: Bool list not of length 4"
-
-colorBlock :: AnsiColor -> IO ()
-colorBlock c = setSGR [setFG c] *> putStr "█" *> clear
+hexChar2 :: Word8 -> Char
+hexChar2 = head . tail . hexShow
 
 
 ---- Byte display functions ----
 
-w8bools :: Word8 -> [Bool]
-w8bools w = testBit w <$> [0..7]
+binaryDisplay :: Word8 -> IO ()
+binaryDisplay (sepByte -> (x,y)) = do
+  putStr (bitStr x)
+  putStr (bitStr y)
 
-bitColorShow :: [Bool] -> IO ()
-bitColorShow [a,b,c,d,e,f,g,h] = do
-  let l1 = [a,b,c,d]
-      l2 = [e,f,g,h]
-  colorBlock (boolColor l1)
-  putStr (bitStr l1)
-  colorBlock (boolColor l2)
-  putStr (bitStr l2)
-bitColorShow _ = error "bitColorShow: Bool list not of length 8"
+spinDisplay :: Word8 -> IO ()
+spinDisplay (sepByte -> (x,y)) = do
+  putStr (spinStr x)
+  putStr (spinStr y)
 
-bitShow :: [Bool] -> IO ()
-bitShow [a,b,c,d,e,f,g,h] = do
-  let l1 = [a,b,c,d]
-      l2 = [e,f,g,h]
-  putStr (bitStr l1)
-  putStr (bitStr l2)
-bitShow _ = error "bitShow: Bool list not of length 8"
+bitColorDisplay :: Word8 -> IO ()
+bitColorDisplay (sepByte -> (x,y)) = do
+  colorBlock (color x)
+  putStr (bitStr x)
+  colorBlock (color y)
+  putStr (bitStr y)
 
-spinColorShow :: [Bool] -> IO ()
-spinColorShow [a,b,c,d,e,f,g,h] = do
-  let l1 = [a,b,c,d]
-      l2 = [e,f,g,h]
-  colorBlock (boolColor l1)
-  putStr (spinStr l1)
-  colorBlock (boolColor l2)
-  putStr (spinStr l2)
-spinColorShow _ = error "spinColorShow: Bool list not of length 8"
+spinColorDisplay :: Word8 -> IO ()
+spinColorDisplay (sepByte -> (x,y)) = do
+  colorBlock (color x)
+  putStr (spinStr x)
+  colorBlock (color y)
+  putStr (spinStr y)
 
-spinShow :: [Bool] -> IO ()
-spinShow [a,b,c,d,e,f,g,h] = do
-  let l1 = [a,b,c,d]
-      l2 = [e,f,g,h]
-  putStr (spinStr l1)
-  putStr (spinStr l2)
-spinShow _ = error "spinShow: Bool list not of length 8"
+hexColorDisplay :: Word8 -> IO ()
+hexColorDisplay w = do
+  let (x,y) = sepByte w
+  colorBlock (color x)
+  colorBlock (color y)
+  putChar (hexChar1 w)
+  putChar (hexChar2 w)
 
-colorShow :: [Bool] -> IO ()
-colorShow [a,b,c,d,e,f,g,h] = do
-  let l1 = [a,b,c,d]
-      l2 = [e,f,g,h]
-  colorBlock (boolColor l1)
-  colorBlock (boolColor l2)
-colorShow _ = error "colorShow: Bool list not of length 8"
+colorDisplay :: Word8 -> IO ()
+colorDisplay (sepByte -> (x,y)) = do
+  colorBlock (color x)
+  colorBlock (color y)
 
 
 ---- Interpreting as display IO actions ----
 
 displayByte :: DisplayStyle -> Word8 -> IO ()
-displayByte Default    = colorShow . w8bools
-displayByte Spins      = spinShow . w8bools
-displayByte Bits       = bitShow . w8bools
-displayByte ColorSpins = spinColorShow . w8bools
-displayByte ColorBits  = bitColorShow . w8bools
+displayByte Colors     = colorDisplay
+displayByte Spins      = spinDisplay
+displayByte Bits       = binaryDisplay
+displayByte ColorSpins = spinColorDisplay
+displayByte ColorBits  = bitColorDisplay
+displayByte Hex        = putStr . hexShow
+displayByte ColorHex   = hexColorDisplay
 
 displayBytes :: DisplayStyle -> [Word8] -> IO ()
 displayBytes = mapM_ . displayByte

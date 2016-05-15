@@ -43,6 +43,7 @@ fetchQRNBits :: Int -> IO [Bool]
 fetchQRNBits n = concat . map w8bools <$> fetchQRN n
 
 
--- | Converts a byte (Word8) to the corresponding list of 8 boolean values.
+-- Converts a byte (Word8) to the corresponding list of 8 boolean values.
+-- 'Bits' type class numbers bits from least to most significant, thus the reverse
 w8bools :: Word8 -> [Bool]
-w8bools w = testBit w <$> [0..7]
+w8bools w = reverse $ testBit w <$> [0..7]
