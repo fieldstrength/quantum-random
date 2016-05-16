@@ -22,7 +22,7 @@ initAccessControl = AccessControl <$> newMVar ()
 -- | Perform the supplied IO action only when access is granted.
 withAccess :: AccessControl -> IO a -> IO a
 withAccess (AccessControl mv) io = do
-  u <- takeMVar mv
+  _ <- takeMVar mv
   x <- io
-  putMVar mv u
-  return x
+  putMVar mv ()
+  pure x

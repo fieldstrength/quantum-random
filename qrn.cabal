@@ -48,11 +48,13 @@ library
                        http-conduit  >=2.1  && <2.2,
                        ansi-terminal >=0.6  && <0.7,
                        transformers  >=0.4  && <0.5,
+                       terminal-size >=0.3  && <0.4,
+                       directory     >=1.2  && <1.3,
 
                        -- for executable
                        haskeline     >=0.7  && <0.8,
-                       mtl           >= 2.2 && <2.3,
-                       directory     >=1.2
+                       mtl           >= 2.2 && <2.3
+
 
   exposed-modules:     Quantum.Random,
                        Quantum.Random.Exceptions,

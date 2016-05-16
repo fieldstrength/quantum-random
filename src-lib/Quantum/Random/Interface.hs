@@ -108,15 +108,15 @@ cwords = words . map toLower
 
 readCommand :: String -> Maybe Command
 readCommand (cwords -> ["add",n])        = Add <$> readInt n
-readCommand (cwords -> ["peekall"])      = Just (PeekAll Colors)
+readCommand (cwords -> ["peekall"])      = Just (PeekAll ColorHex)
 readCommand (cwords -> ["peekall",s])    = PeekAll <$> parseStyle s
-readCommand (cwords -> ["peek","all"])   = Just (PeekAll Colors)
+readCommand (cwords -> ["peek","all"])   = Just (PeekAll ColorHex)
 readCommand (cwords -> ["peek","all",s]) = PeekAll <$> parseStyle s
-readCommand (cwords -> ["observe",n])    = Observe <$> readInt n <*> Just Colors
+readCommand (cwords -> ["observe",n])    = Observe <$> readInt n <*> Just ColorHex
 readCommand (cwords -> ["observe",n,s])  = Observe <$> readInt n <*> parseStyle s
-readCommand (cwords -> ["peek",n])       = Peek <$> readInt n <*> Just Colors
+readCommand (cwords -> ["peek",n])       = Peek <$> readInt n <*> Just ColorHex
 readCommand (cwords -> ["peek",n,s])     = Peek <$> readInt n <*> parseStyle s
-readCommand (cwords -> ["live",n])       = Live <$> readInt n <*> Just Colors
+readCommand (cwords -> ["live",n])       = Live <$> readInt n <*> Just ColorHex
 readCommand (cwords -> ["live",n,s])     = Live <$> readInt n <*> parseStyle s
 readCommand (cwords -> ["fill"])         = Just Fill
 readCommand (cwords -> ["restore"])      = Just RestoreDefaults
@@ -187,7 +187,6 @@ interpSafe :: AccessControl -> Command -> IO ()
 interpSafe a   (Add n)       = addSafely a n
 interpSafe a   (Observe n s) = observeSafely a s n
 interpSafe _ c@(Live _ _)    = interp c
-interpSafe _ c@(Save _)      = interp c
 interpSafe _ c@Help          = interp c
 interpSafe _ c@Quit          = interp c
 interpSafe a c               = withAccess a (interp c)

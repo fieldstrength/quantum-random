@@ -35,12 +35,12 @@ fetchQResponse n = throwLeft $ parseResponse <$> getANU n
 fetchQRN :: Int -> IO [Word8]
 fetchQRN n = map fromIntegral . qdata <$> fetchQResponse n
 
--- | Fetch QRN data from ANU server as a list of booleans via HTTPS. Problems are handled via the
---   custom exception data type 'QRNException'.
+-- | Fetch QRN data from ANU server as a linked list of booleans via HTTPS. Problems are handled
+--   via the custom exception data type 'QRNException'.
 fetchQRNBits :: Int -> IO [Bool]
 fetchQRNBits n = concat . map w8bools <$> fetchQRN n
 
 -- Converts a byte (Word8) to the corresponding list of 8 boolean values.
--- 'Bits' type class numbers bits from least to most significant, thus the reverse
+-- 'Bits' type class indexes bits from least to most significant, thus the reverse
 w8bools :: Word8 -> [Bool]
 w8bools w = reverse $ testBit w <$> [0..7]

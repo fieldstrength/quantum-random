@@ -12,16 +12,16 @@ module Quantum.Random.Display (
 
 ) where
 
-import System.Console.ANSI      (Color (..), ColorIntensity (..), setSGR)
-import System.Console.Ansigraph (AnsiColor (..), setFG, clear)
-import Data.Word                (Word8)
-import Data.Bits                (testBit)
-import Data.Char                (toLower)
-import Numeric                  (showHex)
+import System.Console.ANSI          (Color (..), ColorIntensity (..), setSGR)
+import System.Console.Ansigraph     (AnsiColor (..), setFG, clear)
+import System.Console.Terminal.Size (size,width)
+import Data.Word                    (Word8)
+import Data.Bits                    (testBit)
+import Data.Char                    (toLower)
+import Numeric                      (showHex)
 
 
--- | Represents the supported methods for displaying binary data.
---   This data type may be extended in the future.
+-- | Represents supported methods for displaying binary data.
 data DisplayStyle = Colors
                   | Spins
                   | Bits
@@ -47,7 +47,7 @@ parseStyle _                              = Nothing
 
 ---- Interpreting as colors ----
 
--- 'Bits' type class numbers bits from least to most significant, thus the reverse
+-- 'Bits' type class indexes bits from least to most significant, thus the reverse
 w8bools :: Word8 -> [Bool]
 w8bools w = reverse $ testBit w <$> [0..7]
 
@@ -83,66 +83,58 @@ colorBlock :: AnsiColor -> IO ()
 colorBlock c = setSGR [setFG c] *> putStr "█" *> clear
 
 
----- Interpreting as characters ----
+---- Interpreting as strings ----
+
+binChar :: Bool -> Char
+binChar False = '0'
+binChar True  = '1'
 
 spinChar :: Bool -> Char
 spinChar False = '↑'
 spinChar True  = '↓'
 
+binStr :: FourBits -> String
+binStr (a,b,c,d) = [binChar a, binChar b, binChar c, binChar d]
+
 spinStr :: FourBits -> String
 spinStr (a,b,c,d) = [spinChar a, spinChar b, spinChar c, spinChar d]
 
-bitChar :: Bool -> Char
-bitChar False = '0'
-bitChar True  = '1'
-
-bitStr :: FourBits -> String
-bitStr (a,b,c,d) = [bitChar a, bitChar b, bitChar c, bitChar d]
-
-hexShow :: Word8 -> String
-hexShow w = let hx = showHex w ""
-            in  if length hx < 2 then '0' : hx else hx
-
-hexChar1 :: Word8 -> Char
-hexChar1 = head . hexShow
-
-hexChar2 :: Word8 -> Char
-hexChar2 = head . tail . hexShow
+hexStr :: Word8 -> String
+hexStr w = let hx = showHex w " "
+           in  if length hx < 3 then '0' : hx else hx
 
 
 ---- Byte display functions ----
 
-binaryDisplay :: Word8 -> IO ()
-binaryDisplay (sepByte -> (x,y)) = do
-  putStr (bitStr x)
-  putStr (bitStr y)
+binDisplay :: Word8 -> IO ()
+binDisplay (sepByte -> (x,y)) = do
+  putStr $ (binStr x) ++ " " ++ (binStr y) ++ "  "
 
 spinDisplay :: Word8 -> IO ()
 spinDisplay (sepByte -> (x,y)) = do
-  putStr (spinStr x)
-  putStr (spinStr y)
+  putStr $ (spinStr x) ++ " " ++ (spinStr y) ++ "  "
 
-bitColorDisplay :: Word8 -> IO ()
-bitColorDisplay (sepByte -> (x,y)) = do
+hexDisplay :: Word8 -> IO ()
+hexDisplay = putStr . hexStr
+
+binColorDisplay :: Word8 -> IO ()
+binColorDisplay (sepByte -> (x,y)) = do
   colorBlock (color x)
-  putStr (bitStr x)
   colorBlock (color y)
-  putStr (bitStr y)
+  putStr $ " " ++ (binStr x) ++ " " ++ (binStr y) ++ " "
 
 spinColorDisplay :: Word8 -> IO ()
 spinColorDisplay (sepByte -> (x,y)) = do
   colorBlock (color x)
-  putStr (spinStr x)
   colorBlock (color y)
-  putStr (spinStr y)
+  putStr $ " " ++ (spinStr x) ++ " " ++ (spinStr y) ++ " "
 
 hexColorDisplay :: Word8 -> IO ()
 hexColorDisplay w = do
   let (x,y) = sepByte w
   colorBlock (color x)
   colorBlock (color y)
-  putChar (hexChar1 w)
-  putChar (hexChar2 w)
+  putStr $ ' ' : hexStr w
 
 colorDisplay :: Word8 -> IO ()
 colorDisplay (sepByte -> (x,y)) = do
@@ -155,14 +147,41 @@ colorDisplay (sepByte -> (x,y)) = do
 displayByte :: DisplayStyle -> Word8 -> IO ()
 displayByte Colors     = colorDisplay
 displayByte Spins      = spinDisplay
-displayByte Bits       = binaryDisplay
+displayByte Bits       = binDisplay
 displayByte ColorSpins = spinColorDisplay
-displayByte ColorBits  = bitColorDisplay
-displayByte Hex        = putStr . hexShow
+displayByte ColorBits  = binColorDisplay
+displayByte Hex        = hexDisplay
 displayByte ColorHex   = hexColorDisplay
 
+-- How many characters each display style uses per byte
+byteSize :: DisplayStyle -> Int
+byteSize ColorHex   = 6
+byteSize ColorBits  = 13
+byteSize ColorSpins = 13
+byteSize Bits       = 11
+byteSize Spins      = 11
+byteSize Hex        = 3
+byteSize _          = 1
+
+insertEvery :: Int -> a -> [a] -> [a]
+insertEvery n x l = take n l ++ nl
+   where nl = if length (drop n l) > 0
+              then (x : insertEvery n x (drop n l))
+              else []
+
+-- Obtain the character-width of the terminal. On failure assume a conservative default.
+termWidth :: IO Int
+termWidth = do mw <- fmap width <$> size
+               case mw of
+                    Just w  -> pure w
+                    Nothing -> pure 80
+
+-- Display data, such that no byte is broken by a new line.
 displayBytes :: DisplayStyle -> [Word8] -> IO ()
-displayBytes = mapM_ . displayByte
+displayBytes sty ws = do
+  w <- termWidth
+  let bw = w `div` byteSize sty
+  sequence_ $ insertEvery bw (putStrLn "") $ displayByte sty <$> ws
 
 -- | Display a given list of bytes with the specified display style.
 display :: DisplayStyle -> [Word8] -> IO ()

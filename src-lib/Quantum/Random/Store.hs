@@ -202,7 +202,7 @@ fill = do
   case (compare size targ) of
        LT -> do anu <- fetchQRN (targ - size)
                 putStoreBytes $ qs ++ anu
-       _  -> return ()
+       _  -> pure ()
 
 -- | Refill data store to target size, discarding data already present.
 refill :: IO ()
@@ -226,14 +226,14 @@ extract n = do
        (GT,GT) -> do anu <- fetchQRN needed
                      let (xs,ys) = splitAt n $ qs ++ anu
                      putStoreBytes ys
-                     return xs
+                     pure xs
        (GT,_)  -> do forkIO $ addToStore needed
                      let (xs,ys) = splitAt n qs
                      putStoreBytes ys
-                     return xs
+                     pure xs
        _       -> do let (xs,ys) = splitAt n qs
                      putStoreBytes ys
-                     return xs
+                     pure xs
 
 -- | Access-controlled version of 'extract'.
 extractSafely :: AccessControl -> Int -> IO [Word8]
@@ -247,14 +247,14 @@ extractSafely acc n = do
        (GT,GT) -> do anu <- fetchQRN needed  -- if n > margin then must req ANU
                      let (xs,ys) = splitAt n $ qs ++ anu
                      withAccess acc $ putStoreBytes ys
-                     return xs
+                     pure xs
        (GT,_) -> do _ <- forkIO $ addSafely acc needed
                     let (xs,ys) = splitAt n qs
                     withAccess acc $ putStoreBytes ys
-                    return xs
+                    pure xs
        _  -> do let (xs,ys) = splitAt n qs
                 withAccess acc $ putStoreBytes ys
-                return xs
+                pure xs
 
 -- | Destructively view the specified number of bytes, via 'extract'.
 --   The name connotes the irreversibility of quantum measurement.
