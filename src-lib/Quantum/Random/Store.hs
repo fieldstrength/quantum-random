@@ -222,18 +222,14 @@ extract n = do
   st <- getSettings
   let delta = size - minStoreSize st
   let needed = targetStoreSize st + n - size
-  case (compare n delta, compare n size) of
-       (GT,GT) -> do anu <- fetchQRN needed
-                     let (xs,ys) = splitAt n $ qs ++ anu
-                     putStoreBytes ys
-                     pure xs
-       (GT,_)  -> do forkIO $ addToStore needed
-                     let (xs,ys) = splitAt n qs
-                     putStoreBytes ys
-                     pure xs
-       _       -> do let (xs,ys) = splitAt n qs
-                     putStoreBytes ys
-                     pure xs
+  case (compare n delta) of
+       GT -> do anu <- fetchQRN needed
+                let (xs,ys) = splitAt n $ qs ++ anu
+                putStoreBytes ys
+                pure xs
+       _  -> do let (xs,ys) = splitAt n qs
+                putStoreBytes ys
+                pure xs
 
 -- | Access-controlled version of 'extract'.
 extractSafely :: AccessControl -> Int -> IO [Word8]
