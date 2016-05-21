@@ -2,22 +2,37 @@
 
 [![Build Status](https://travis-ci.org/BlackBrane/quantum-random-numbers.svg?branch=master)](https://travis-ci.org/BlackBrane/quantum-random-numbers)
 
-Retrieve, store and manage real quantum random numbers. They are obtained by measuring the vacuum and served by [Australian National University](http://qrng.anu.edu.au/).
+Retrieve, store and manage real quantum random numbers. They are obtained by measuring vacuum fluctuations of the electromagnetic field, and served by [Australian National University](http://qrng.anu.edu.au/).
 
-This package provides:
-* A Haskell library to performs these tasks, in conjunction with a local data store set up upon installation
-* An executable program `qrn` providing an interface to these functionalities.
+The package is to ensure QRNs are promptly available for your application by keeping a sufficient number locally. When they are depleted to a specified level, new QRN data are downloaded concurrently over SSL. It can be configured by specifying the minimum store size (below which more data are retrieved) the target store size (the size of the store after retrieval) and the default display style.
 
-The data store is managed according to a simple protocol: There is a minimum size and a target
-maximum size adjustable by the user. When data is requested that would reduce the store below the
-minimum level, more QRN data is requested from ANU to both fulfill the request and to refill the
-data store back to the "target" size.
+This functionality is provided by:
 
+* An executable program `qrn`
+* A Haskell module `Quantum.Random`.
 
 ### Command line usage
 
 Call `qrn` without any command line arguments to launch the interactive program, or alternatively
 supply the desired command as arguments to only perform the specified operation.
+
+#### Setup
+
+Assuming GHC and Cabal are installed:
+
+```
+cabal update
+cabal install qrn
+qrn fill
+```
+
+One might also opt to set appropriate store size defaults before filling:
+
+```
+qrn set minsize 150
+qrn set tarsize 300
+qrn fill
+```
 
 #### Available commands
 
@@ -64,7 +79,7 @@ Simply type these modifiers after any display command. For example:
 ### Usage in Haskell code
 
 All user-facing functionality may be accessed from the `Quantum.Random` module, though a user can
-also opt to import particular constituent modules if only a subset of the functionality is needed.
+also just import particular constituent modules when only a subset of the functionality is needed.
 
 The most basic service is to retrieve data directly from ANU, which is provided by functions
 from the `Quantum.Random.ANU` module. There are two variants yielding either a list of bytes or a
@@ -85,10 +100,10 @@ This also invokes the machinery to retrieve more data and refill the store as ne
 Most of the IO actions in the package use a custom exception type to handle the unlikely
 error conditions that may be encountered. See the `Quantum.Random.Exceptions` module for details.
 
-### Future work
+### Physical Origin
 
-Some future refinements that may be added are:
+Detailed information on the physical setup used to produces these random number streams can be
+found in these papers:
 
-* Secure data retrieval
-* Asynchronous data retrieval
-* Hexidecimal display
+* [Real time demonstration of high bitrate quantum random number generation with coherent laser light](http://arxiv.org/abs/1107.4438)
+* [Maximization of Extractable Randomness in a Quantum Random-Number Generator](http://arxiv.org/abs/1411.4512)

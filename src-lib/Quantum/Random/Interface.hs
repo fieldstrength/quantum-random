@@ -228,7 +228,7 @@ status = do
 
 errorMsg :: IO ()
 errorMsg = do
-  putStrLn "***** QRN Error: Couldn't parse command."
+  putStrLn "***** QRN Error: Could not parse command."
   putStrLn "***** Enter 'help' or '?' to see list of available commands."
 
 

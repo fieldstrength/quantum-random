@@ -28,7 +28,7 @@ data DisplayStyle = Colors
                   | Hex
                   | ColorSpins
                   | ColorBits
-                  | ColorHex
+                  | ColorHex deriving Show
 
 -- | Parse a string to one of the supported display styles.
 parseStyle :: String -> Maybe DisplayStyle

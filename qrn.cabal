@@ -1,18 +1,20 @@
 name:                qrn
-version:             0.4.0.0
+version:             1.0.0.0
 synopsis:            Retrieve, store and manage real quantum random numbers.
 
 description:         Retrieve, store, manage and visualize real quantum random numbers
-                     obtained by measuring the vacuum and served by Australian National
-                     University. The functionality is provided both by the haskell module
-                     "Quantum.Random" and an executable program `qrn`.
+                     obtained by measuring vacuum fluctuations of the electromagnetic field
+                     and served by Australian National University. The functionality is
+                     provided both by an executable program `qrn` and a haskell module
+                     "Quantum.Random".
                      .
 
-                     The data store is managed according to a simple protocol: There is a
-                     minimum size and a target maximum size adjustable by the user. When
-                     the requested amount of data would reduce the store below the minimum
-                     level, more QRN data is retrieved from ANU to both fulfill the request
-                     and to refill the data store back to the "target" size.
+                     The package is to ensure QRNs are promptly available for your application
+                     by keeping a sufficient number locally. When they are depleted to a
+                     specified level, new QRN data are downloaded concurrently over SSL. It
+                     can be configured by specifying the minimum store size (below which more
+                     data are retrieved) the target store size (the size of the store after
+                     retrieval) and the default display style.
                      .
 
                      For more information on the API service on which this package is based,
@@ -31,6 +33,8 @@ cabal-version:       >=1.10
 
 data-files:          qrn_data/qrn_store.bin,
                      qrn_data/qrn_settings.json
+
+extra-source-files:  README.md
 
 source-repository head
   type:     git
@@ -53,15 +57,15 @@ library
 
                        -- for executable
                        haskeline     >=0.7  && <0.8,
-                       mtl           >= 2.2 && <2.3
+                       mtl           >=2.2  && <2.3
 
 
   exposed-modules:     Quantum.Random,
                        Quantum.Random.Exceptions,
                        Quantum.Random.ANU,
-                       Quantum.Random.Store,
                        Quantum.Random.Display,
                        Quantum.Random.Semaphore,
+                       Quantum.Random.Store,
                        Quantum.Random.Interface
 
 
@@ -82,3 +86,13 @@ executable qrn
                        qrn
 
   default-language:    Haskell2010
+
+test-suite test-qrn
+  type:             exitcode-stdio-1.0
+  hs-source-dirs:   test
+  main-is:          test-qrn.hs
+  default-language: Haskell2010
+  build-depends:    base == 4.*,
+                    qrn,
+                    hspec == 2.*,
+                    QuickCheck == 2.*
