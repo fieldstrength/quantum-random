@@ -82,7 +82,7 @@ executable qrn
 
   main-is:             Main.hs
 
-  build-depends:       base          >=4.8 && <4.9,
+  build-depends:       base          >=4.8 && <4.10,
                        qrn
 
   default-language:    Haskell2010
