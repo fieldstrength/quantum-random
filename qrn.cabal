@@ -43,7 +43,7 @@ source-repository head
 library
   hs-source-dirs:      src-lib
 
-  build-depends:       base          >=4.8  && <4.9,
+  build-depends:       base          >=4.8  && <4.10,
                        ansigraph     >=0.1  && <0.2,
                        aeson         >=0.8  && <1.0,
                        text          >=1.2  && <1.3,
