@@ -55,6 +55,12 @@ module Quantum.Random.Store (
   restoreDefaults,
   reinitialize,
 
+  -- * Store access control
+
+  AccessControl (..),
+  withAccess,
+  initAccessControl
+
 ) where
 
 import Paths_qrn
@@ -62,9 +68,8 @@ import Quantum.Random.Codec
 import Quantum.Random.ANU
 import Quantum.Random.Display
 import Quantum.Random.Exceptions
-import Quantum.Random.Semaphore
+import Quantum.Random.Mutex
 
-import Control.Concurrent (forkIO)
 import System.IO          (openBinaryFile, IOMode (..), hClose)
 import System.Directory   (doesFileExist)
 import Data.Aeson         (encode)
@@ -73,6 +78,7 @@ import Data.ByteString    (ByteString, readFile, writeFile, pack, unpack, hPut, 
 import qualified Data.ByteString.Lazy as Lazy
                           (fromStrict, toStrict)
 import Prelude     hiding (readFile, writeFile, length)
+import Control.Concurrent (forkIO)
 
 
 ---- Data/Settings file locations ----
@@ -244,7 +250,7 @@ extractSafely acc n = do
                      let (xs,ys) = splitAt n $ qs ++ anu
                      withAccess acc $ putStoreBytes ys
                      pure xs
-       (GT,_) -> do _ <- forkIO $ addSafely acc needed
+       (GT,_) -> do forkIO $ addSafely acc needed
                     let (xs,ys) = splitAt n qs
                     withAccess acc $ putStoreBytes ys
                     pure xs

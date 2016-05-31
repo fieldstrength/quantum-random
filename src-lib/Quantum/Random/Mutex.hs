@@ -3,8 +3,8 @@
 --
 --   It could also be used to control access to /any/ resource, not just these particular files.
 --
---   Usually to be imported via the "Quantum.Random" module.
-module Quantum.Random.Semaphore where
+--   Usually to be imported via the "Quantum.Random.Store" module.
+module Quantum.Random.Mutex where
 
 import Control.Concurrent.MVar (MVar, newMVar, takeMVar, putMVar)
 
