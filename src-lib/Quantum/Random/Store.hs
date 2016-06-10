@@ -78,7 +78,6 @@ import Data.ByteString    (ByteString, readFile, writeFile, pack, unpack, hPut, 
 import qualified Data.ByteString.Lazy as Lazy
                           (fromStrict, toStrict)
 import Prelude     hiding (readFile, writeFile, length)
-import Control.Concurrent (forkIO)
 
 
 ---- Data/Settings file locations ----
@@ -250,7 +249,7 @@ extractSafely acc n = do
                      let (xs,ys) = splitAt n $ qs ++ anu
                      withAccess acc $ putStoreBytes ys
                      pure xs
-       (GT,_) -> do forkIO $ addSafely acc needed
+       (GT,_) -> do addSafely acc needed
                     let (xs,ys) = splitAt n qs
                     withAccess acc $ putStoreBytes ys
                     pure xs

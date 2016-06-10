@@ -12,8 +12,8 @@ module Quantum.Random.Display (
 
 ) where
 
-import System.Console.ANSI          (Color (..), ColorIntensity (..), setSGR)
-import System.Console.Ansigraph     (AnsiColor (..), setFG, clear)
+import System.Console.ANSI          (Color (..), ColorIntensity (..))
+import System.Console.Ansigraph     (AnsiColor (AnsiColor), colorStr, fromFG)
 import System.Console.Terminal.Size (size,width)
 import Data.Word                    (Word8)
 import Data.Bits                    (testBit)
@@ -80,7 +80,7 @@ color (True,True,True,False)    = AnsiColor Dull White
 color (True,True,True,True)     = AnsiColor Vivid White
 
 colorBlock :: AnsiColor -> IO ()
-colorBlock c = setSGR [setFG c] *> putStr "█" *> clear
+colorBlock c = colorStr (fromFG c) "█"
 
 
 ---- Interpreting as strings ----
