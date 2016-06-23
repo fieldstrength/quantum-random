@@ -184,12 +184,14 @@ interp Quit               = pure ()
 
 -- | Controlled-access variant of 'interp'.
 interpSafe :: AccessControl -> Command -> IO ()
-interpSafe a   (Add n)       = addSafely a n
-interpSafe a   (Observe n s) = observeSafely a s n
+interpSafe a (Add n)         = addSafely a n
+interpSafe a (Observe n s)   = observeSafely a s n
+interpSafe a Quit            = exitSafely a
 interpSafe _ c@(Live _ _)    = interp c
 interpSafe _ c@Help          = interp c
-interpSafe _ c@Quit          = interp c
 interpSafe a c               = withAccess a (interp c)
+
+
 
 -- | Perform command, via 'interp', after printing a description to STDOUT, with any exceptions
 --   reported there as well.

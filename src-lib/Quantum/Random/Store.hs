@@ -57,9 +57,11 @@ module Quantum.Random.Store (
 
   -- * Store access control
 
-  AccessControl (..),
+  AccessControl,
+  initAccessControl,
   withAccess,
-  initAccessControl
+  forkSafely,
+  exitSafely
 
 ) where
 
@@ -94,12 +96,12 @@ getSettingsFile = getDataFileName "qrn_data/qrn_settings.json"
 ---- Settings access and update ----
 
 getSettings :: IO QSettings
-getSettings = throwLeft $
-  parseSettings . Lazy.fromStrict <$>
-  (getSettingsFile >>= readFile)
+getSettings = throwLeft . fmap (parseSettings . Lazy.fromStrict) $ readFile =<< getSettingsFile
 
 putSettings :: QSettings -> IO ()
-putSettings qs = getSettingsFile >>= flip writeFile (Lazy.toStrict $ encode qs)
+putSettings qs = do
+  file <- getSettingsFile
+  writeFile file . Lazy.toStrict . encode $ qs
 
 -- | Query the settings file for the minimum store size setting.
 getMinStoreSize :: IO Int
@@ -249,7 +251,7 @@ extractSafely acc n = do
                      let (xs,ys) = splitAt n $ qs ++ anu
                      withAccess acc $ putStoreBytes ys
                      pure xs
-       (GT,_) -> do addSafely acc needed
+       (GT,_) -> do forkSafely acc $ addSafely acc needed
                     let (xs,ys) = splitAt n qs
                     withAccess acc $ putStoreBytes ys
                     pure xs
