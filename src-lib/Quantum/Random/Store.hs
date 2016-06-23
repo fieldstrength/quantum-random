@@ -65,7 +65,7 @@ module Quantum.Random.Store (
 
 ) where
 
-import Paths_qrn
+import Paths_quantum_random_numbers
 import Quantum.Random.Codec
 import Quantum.Random.ANU
 import Quantum.Random.Display

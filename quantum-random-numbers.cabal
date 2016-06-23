@@ -1,5 +1,5 @@
-name:                qrn
-version:             1.0.0.0
+name:                quantum-random-numbers
+version:             0.5.0.0
 synopsis:            Retrieve, store and manage real quantum random numbers.
 
 description:         Retrieve, store, manage and visualize real quantum random numbers
@@ -70,7 +70,7 @@ library
 
   other-modules:       Quantum.Random.Codec,
                        Quantum.Random.Mutex,
-                       Paths_qrn
+                       Paths_quantum_random_numbers
 
   default-language:    Haskell2010
 
@@ -83,7 +83,7 @@ executable qrn
   main-is:             Main.hs
 
   build-depends:       base          >=4.8 && <4.10,
-                       qrn
+                       quantum-random-numbers
 
   default-language:    Haskell2010
 
@@ -93,6 +93,6 @@ test-suite test-qrn
   main-is:          test-qrn.hs
   default-language: Haskell2010
   build-depends:    base == 4.*,
-                    qrn,
+                    quantum-random-numbers,
                     hspec == 2.*,
                     QuickCheck == 2.*
