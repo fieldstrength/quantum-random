@@ -8,30 +8,26 @@
 module Quantum.Random.Exceptions (
 
 -- * QRN exception data type
-  QRNException (..),
+  QRException (..),
 
 -- ** Throwing
-  throwLeft,
-
--- ** Catching
-  reportQRNExceptions
+  throwLeft
 
 ) where
 
 import Data.Typeable        (Typeable)
-import Control.Exception    (Exception, handle, throw)
-import Network.HTTP.Conduit (HttpException)
+import Control.Exception    (Exception, throw)
 
 -- | Represents two possible error conditions that may be encountered: in interpreting
 --   data retrived from ANU, or while reading the local settings file.
-data QRNException = ParseResponseError String
-                  | ParseSettingsError String deriving Typeable
+data QRException = ParseResponseError String
+                 | ParseSettingsError String deriving Typeable
 
-instance Show QRNException where
+instance Show QRException where
   show (ParseResponseError str) = unlines ["Problem parsing response from ANU server:", str]
   show (ParseSettingsError str) = unlines ["Problem interpreting settings file:", str]
 
-instance Exception QRNException
+instance Exception QRException
 
 -- | Perform an IO computation that might encounter a problem corresponding to a 'Exception'.
 --   If so, throw the exception, if not just return the value.
@@ -41,16 +37,3 @@ throwLeft ioer = do
   case mx of
        Left er -> throw er
        Right x -> pure x
-
--- | Action to perform when encountering a 'QRNException'. Report the error via the `Show` instance.
---   Equivalent to `print` but with a necessarily more specific type.
-reportParseErrors :: QRNException -> IO ()
-reportParseErrors = print
-
-reportHTTPExceptions :: HttpException -> IO ()
-reportHTTPExceptions e = putStr "HTTP exception: " *> print e
-
--- | When either a 'QRNException' or 'HttpException' is encountered,
---   it is reported instead of crashing.
-reportQRNExceptions :: IO () -> IO ()
-reportQRNExceptions = handle reportParseErrors . handle reportHTTPExceptions

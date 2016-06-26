@@ -66,7 +66,7 @@ module Quantum.Random.Store (
 
 ) where
 
-import Paths_quantum_random_numbers
+import Paths_quantum_random
 import Quantum.Random.Codec
 import Quantum.Random.ANU
 import Quantum.Random.Display
@@ -87,11 +87,11 @@ import Prelude     hiding (readFile, writeFile, length)
 
 -- | Get path of local store file set up by cabal on installation.
 getStoreFile :: IO FilePath
-getStoreFile = getDataFileName "qrn_data/qrn_store.bin"
+getStoreFile = getDataFileName "qr_data/qr_store.bin"
 
 -- | Get path of local settings file set up by cabal on installation.
 getSettingsFile :: IO FilePath
-getSettingsFile = getDataFileName "qrn_data/qrn_settings.json"
+getSettingsFile = getDataFileName "qr_data/qr_settings.json"
 
 
 ---- Settings access and update ----
@@ -205,14 +205,14 @@ appendToStore bs = do
 -- | Retrieve the specified number of QRN bytes and add them to the store.
 addToStore :: Int -> IO ()
 addToStore n = do
-  bs <- pack <$> fetchQRN n
+  bs <- pack <$> fetchQR n
   appendToStore bs
 
 -- | Like `addToStore`, but uses 'AccessControl' to ensure that file writing doesn't interfere with
 --   other operations.
 addSafely :: AccessControl -> Int -> IO ()
 addSafely acc n = do
-  bs <- pack <$> fetchQRN n
+  bs <- pack <$> fetchQR n
   withAccess acc (appendToStore bs)
 
 -- | Load binary data from specified file path, append it to the data store.
@@ -230,13 +230,13 @@ fill = do
   qs <- getStoreBytes
   size <- storeSize
   case (compare size targ) of
-       LT -> do anu <- fetchQRN (targ - size)
+       LT -> do anu <- fetchQR (targ - size)
                 putStoreBytes $ qs ++ anu
        _  -> pure ()
 
 -- | Refill data store to target size, discarding data already present.
 refill :: IO ()
-refill = getTargetStoreSize >>= fetchQRN >>= putStoreBytes
+refill = getTargetStoreSize >>= fetchQR >>= putStoreBytes
 
 
 ---- Primary store access, including update/display ----
@@ -253,7 +253,7 @@ extract n = do
   let delta = size - minStoreSize st
   let needed = targetStoreSize st + n - size
   case (compare n delta) of
-       GT -> do anu <- fetchQRN needed
+       GT -> do anu <- fetchQR needed
                 let (xs,ys) = splitAt n $ qs ++ anu
                 putStoreBytes ys
                 pure xs
@@ -270,7 +270,7 @@ extractSafely acc n = do
   let delta = size - minStoreSize st         -- "current margin"
   let needed = targetStoreSize st + n - size -- "what you want minus what you have"
   case (compare n delta, compare n size) of
-       (GT,GT) -> do anu <- fetchQRN needed  -- if n > margin then must req ANU
+       (GT,GT) -> do anu <- fetchQR needed  -- if n > margin then must req ANU
                      let (xs,ys) = splitAt n $ qs ++ anu
                      withAccess acc $ putStoreBytes ys
                      pure xs

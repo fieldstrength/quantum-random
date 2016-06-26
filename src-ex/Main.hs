@@ -37,16 +37,16 @@ helpMsg = unlines
   [ ""
   , "======= Available commands ======="
   , ""
-  , "add [# bytes]     –  Request specified number of QRN bytes from ANU and add them to the store"
-  , "live [# bytes]    –  Request specified number of QRN bytes from ANU and display them directly"
-  , "observe [# bytes] –  Take and display QRN data from store, retrieving more if needed. Those taken from the store are removed"
+  , "add [# bytes]     –  Request specified number of QR bytes from ANU and add them to the store"
+  , "live [# bytes]    –  Request specified number of QR bytes from ANU and display them directly"
+  , "observe [# bytes] –  Take and display QR data from store, retrieving more if needed. Those taken from the store are removed"
   , "peek [# bytes]    –  Display up to the specified number of bytes from the store without removing them"
   , "peekAll           –  Display all data from the store without removing them"
   , "fill              –  Fill the store to the target size with live ANU quantum random numbers"
   , "restoreDefaults   –  Restore default settings"
   , "reinitialize      –  Restore default settings, and refill store to target size"
   , "status            –  Display status of store and settings"
-  , "save [filepath]   –  save binary qrn file to specified file path"
+  , "save [filepath]   –  save binary qr data file to specified file path"
   , "load [filepath]   –  load binary file and append data to store"
   , "set minSize       –  Set the number of bytes below which the store is refilled"
   , "set targetSize    –  Set the number of bytes to have after refilling"
@@ -55,7 +55,7 @@ helpMsg = unlines
   , ""
   , "======= Display options ======="
   , ""
-  , "Commands that display QRN data can take an optional display style modifier: "
+  , "Commands that display QR data can take an optional display style modifier: "
   , "'colors', 'spins', 'bits', 'hex', 'colorSpins', 'colorBits', 'colorHex' (the default)."
   , ""
   , "Examples:"
@@ -143,7 +143,7 @@ interp (Add n)            = addToStore n
 interp (Observe n style)  = observe style n
 interp (Peek n style)     = peek style n
 interp (PeekAll style)    = peekAll style
-interp (Live n style)     = fetchQRN n >>= display style
+interp (Live n style)     = fetchQR n >>= display style
 interp Fill               = fill
 interp RestoreDefaults    = restoreDefaults
 interp Reinitialize       = reinitialize
@@ -156,10 +156,9 @@ interp Help               = putStrLn helpMsg
 interp Quit               = pure ()
 
 
--- | Perform command, via 'interp', after printing a description to STDOUT, with any HTTP or
---   QRN exceptions reported there as well.
+-- | Perform command, via 'interp', after printing a description to STDOUT.
 command :: Command -> IO ()
-command c = reportQRNExceptions (announce c *> interp c)
+command c = (announce c *> interp c)
 
 
 
@@ -193,26 +192,27 @@ execCommand _                       = errorMsg
 
 errorMsg :: IO ()
 errorMsg = do
-  putStrLn "***** QRN Error: Could not parse command."
+  putStrLn "***** QR Error: Could not parse command."
   putStrLn "***** Enter 'help' or '?' to see list of available commands."
 
 
 ---- Core program code ----
 
-type QRN = InputT (ReaderT AccessControl IO)
+type QR = InputT (ReaderT AccessControl IO)
 
-qrn :: QRN ()
-qrn = do str <- getInputLine "QRN> "
-         let jc = readCommand =<< str
-         case jc of
-              Just Quit -> lift (commandSafe Quit)
-              Just c    -> lift (commandSafe c)    *> qrn
-              Nothing   -> liftIO errorMsg         *> qrn
+qrand :: QR ()
+qrand = do
+  str <- getInputLine "QRand> "
+  let jc = readCommand =<< str
+  case jc of
+       Just Quit -> lift (commandSafe Quit)
+       Just c    -> lift (commandSafe c)    *> qrand
+       Nothing   -> liftIO errorMsg         *> qrand
 
 -- | The main function associated with the executable @qrn@. The interactive QRN manager program.
 main :: IO ()
 main = do
   args <- getArgs
   case args of
-       [] -> initAccessControl >>= runReaderT (runInputT defaultSettings qrn)
+       [] -> initAccessControl >>= runReaderT (runInputT defaultSettings qrand)
        _  -> execCommand (unwords args)

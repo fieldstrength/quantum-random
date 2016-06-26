@@ -1,19 +1,19 @@
 # quantum-random-numbers
 
-[![Build Status](https://travis-ci.org/BlackBrane/quantum-random-numbers.svg?branch=master)](https://travis-ci.org/BlackBrane/quantum-random-numbers)
+[![Build Status](https://travis-ci.org/BlackBrane/quantum-random.svg?branch=master)](https://travis-ci.org/BlackBrane/quantum-random)
 
 Retrieve, store and manage real quantum random numbers. They are obtained by measuring vacuum fluctuations of the electromagnetic field, and served by [Australian National University](http://qrng.anu.edu.au/).
 
-The package is to ensure QRNs are promptly available for your application by keeping a sufficient number locally. When they are depleted to a specified level, new QRN data are downloaded concurrently over SSL. It can be configured by specifying the minimum store size (below which more data are retrieved) the target store size (the size of the store after retrieval) and the default display style.
+The package is designed to ensure quantum random data is promptly available for your application by keeping a sufficient amount locally. When depleted to a specified level, more data is downloaded concurrently over SSL. It can be configured by specifying the minimum store size (below which more data are retrieved) the target store size (the size of the store after retrieval) and the default display style.
 
 This functionality is provided by:
 
-* An executable program `qrn`
+* An executable program `qrand`
 * A Haskell module `Quantum.Random`.
 
 ### Command line usage
 
-Call `qrn` without any command line arguments to launch the interactive program, or alternatively
+Call `qrand` without any command line arguments to launch the interactive program, or alternatively
 supply the desired command as arguments to only perform the specified operation.
 
 #### Setup
@@ -22,31 +22,31 @@ Assuming GHC and Cabal are installed:
 
 ```
 cabal update
-cabal install qrn
-qrn fill
+cabal install quantum-random
+qrand fill
 ```
 
 One might also opt to set appropriate store size defaults before filling:
 
 ```
-qrn set minsize 150
-qrn set tarsize 300
-qrn fill
+qrand set minsize 150
+qrand set tarsize 300
+qrand fill
 ```
 
 #### Available commands
 
 ```
-add [# bytes]     –  Request specified number of QRN bytes from ANU and add them to the store
-live [# bytes]    –  Request specified number of QRN bytes from ANU and display them directly
-observe [# bytes] –  Take and display QRN data from store, retrieving more if needed. Those taken from the store are removed
+add [# bytes]     –  Request specified number of QR bytes from ANU and add them to the store
+live [# bytes]    –  Request specified number of QR bytes from ANU and display them directly
+observe [# bytes] –  Take and display QR data from store, retrieving more if needed. Those taken from the store are removed
 peek [# bytes]    –  Display up to the specified number of bytes from the store without removing them
 peekAll           –  Display all data from the store without removing them
 fill              –  Fill the store to the target size with live ANU quantum random numbers
 restoreDefaults   –  Restore default settings
 reinitialize      –  Restore default settings, and refill store to target size
 status            –  Display status of store and settings
-save [filepath]   –  save binary qrn file to specified file path
+save [filepath]   –  save binary QR data file to specified file path
 load [filepath]   –  load binary file and append data to store
 set minSize       –  Set the number of bytes below which the store is refilled
 set targetSize    –  Set the number of bytes to have after refilling
@@ -86,8 +86,8 @@ from the `Quantum.Random.ANU` module. There are two variants yielding either a l
 list of booleans. In both cases the argument specifies the number of bytes.
 
 ```haskell
-fetchQRN :: Int -> IO [Word8]
-fetchQRNBits :: Int -> IO [Bool]
+fetchQR :: Int -> IO [Word8]
+fetchQRBits :: Int -> IO [Bool]
 ```
 
 Operations involving the data store are exported by `Quantum.Random.Store`. An important one is
@@ -97,8 +97,14 @@ extract :: Int -> IO [Word8]
 ```
 This also invokes the machinery to retrieve more data and refill the store as needed.
 
+#### Exceptions
+
 Most of the IO actions in the package use a custom exception type to handle the unlikely
-error conditions that may be encountered. See the `Quantum.Random.Exceptions` module for details.
+error conditions that may be encountered. Namely parse failure of either the JSON response object
+of the API, or the settings file. See the `Quantum.Random.Exceptions` module for details.
+
+Besides `QRException`, the operations for retrieving from the ANU server use `simpleHttp` from the
+`http-conduit` package and therefore may throw an `HttpException`.
 
 ### Physical Origin
 

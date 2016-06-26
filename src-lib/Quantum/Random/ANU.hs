@@ -5,8 +5,8 @@
 module Quantum.Random.ANU (
 
 -- ** QRN data retrieval
-  fetchQRN,
-  fetchQRNBits,
+  fetchQR,
+  fetchQRBits,
 
 ) where
 
@@ -32,13 +32,13 @@ fetchQResponse n = throwLeft $ parseResponse <$> getANU n
 
 -- | Fetch QRN data from ANU server as a linked list of bytes via HTTPS. Problems are handled via
 --   the custom exception data type 'QRNException'.
-fetchQRN :: Int -> IO [Word8]
-fetchQRN n = map fromIntegral . qdata <$> fetchQResponse n
+fetchQR :: Int -> IO [Word8]
+fetchQR n = map fromIntegral . qdata <$> fetchQResponse n
 
 -- | Fetch QRN data from ANU server as a linked list of booleans via HTTPS. Problems are handled
 --   via the custom exception data type 'QRNException'.
-fetchQRNBits :: Int -> IO [Bool]
-fetchQRNBits n = concat . map w8bools <$> fetchQRN n
+fetchQRBits :: Int -> IO [Bool]
+fetchQRBits n = concat . map w8bools <$> fetchQR n
 
 -- Converts a byte (Word8) to the corresponding list of 8 boolean values.
 -- 'Bits' type class indexes bits from least to most significant, thus the reverse

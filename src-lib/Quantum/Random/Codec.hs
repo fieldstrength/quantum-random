@@ -74,9 +74,9 @@ replaceWord x y s = let (a,_,c) = s =~ x :: (String, String, String)
                     in  a ++ y ++ c
 
 -- | From a Bytestring, attempt to decode a response from ANU ('QResponse').
-parseResponse :: ByteString -> Either QRNException QResponse
+parseResponse :: ByteString -> Either QRException QResponse
 parseResponse = first ParseResponseError . eitherDecode . process
 
 -- | From a Bytestring, attempt to decode a settings record.
-parseSettings :: ByteString -> Either QRNException QSettings
+parseSettings :: ByteString -> Either QRException QSettings
 parseSettings = first ParseSettingsError . eitherDecode

@@ -1,26 +1,26 @@
-name:                quantum-random-numbers
+name:                quantum-random
 version:             0.5.0.0
-synopsis:            Retrieve, store and manage real quantum random numbers.
+synopsis:            Retrieve, store and manage real quantum random data.
 
-description:         Retrieve, store, manage and visualize real quantum random numbers
+description:         Retrieve, store, manage and visualize real quantum random data
                      obtained by measuring vacuum fluctuations of the electromagnetic field
                      and served by Australian National University. The functionality is
-                     provided both by an executable program `qrn` and a haskell module
+                     provided both by an executable program `qrand` and a haskell module
                      "Quantum.Random".
                      .
 
-                     The package is to ensure QRNs are promptly available for your application
-                     by keeping a sufficient number locally. When they are depleted to a
-                     specified level, new QRN data are downloaded concurrently over SSL. It
-                     can be configured by specifying the minimum store size (below which more
-                     data are retrieved) the target store size (the size of the store after
-                     retrieval) and the default display style.
+                     The package is designed to ensure quantum random data is promptly available for
+                     your application by keeping a sufficient amount locally. When depleted to a
+                     specified level, more data is downloaded concurrently over SSL. It can be
+                     configured by specifying the minimum store size (below which more data are
+                     retrieved) the target store size (the size of the store after retrieval) and
+                     the default display style.
                      .
 
                      For more information on the API service on which this package is based,
                      visit the ANU QRN webpage at <http://qrng.anu.edu.au/>.
 
-homepage:            http://github.com/BlackBrane/quantum-random-numbers/
+homepage:            http://github.com/BlackBrane/quantum-random/
 license:             MIT
 license-file:        LICENSE
 author:              Cliff Harvey
@@ -31,14 +31,14 @@ build-type:          Simple
 
 cabal-version:       >=1.10
 
-data-files:          qrn_data/qrn_store.bin,
-                     qrn_data/qrn_settings.json
+data-files:          qr_data/qr_store.bin,
+                     qr_data/qr_settings.json
 
 extra-source-files:  README.md
 
 source-repository head
   type:     git
-  location: git://github.com/BlackBrane/quantum-random-numbers.git
+  location: git://github.com/BlackBrane/quantum-random.git
 
 library
   hs-source-dirs:      src-lib
@@ -64,14 +64,14 @@ library
 
   other-modules:       Quantum.Random.Codec,
                        Quantum.Random.Mutex,
-                       Paths_quantum_random_numbers
+                       Paths_quantum_random
 
   default-language:    Haskell2010
 
   ghc-options:         -Wall
                        -fno-warn-unused-do-bind
 
-executable qrn
+executable qrand
   hs-source-dirs:      src-ex
 
   main-is:             Main.hs
@@ -79,16 +79,16 @@ executable qrn
   build-depends:       base          >=4.8 && <4.10,
                        haskeline     >=0.7 && <0.8,
                        mtl           >=2.2 && <2.3,
-                       quantum-random-numbers
+                       quantum-random
 
   default-language:    Haskell2010
 
 test-suite test-qrn
   type:             exitcode-stdio-1.0
   hs-source-dirs:   test
-  main-is:          test-qrn.hs
+  main-is:          test-quantum-random.hs
   default-language: Haskell2010
   build-depends:    base == 4.*,
-                    quantum-random-numbers,
+                    quantum-random,
                     hspec == 2.*,
                     QuickCheck == 2.*
