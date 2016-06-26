@@ -5,7 +5,7 @@
 --   It also carries an additional `MVar ()` the ensures certain forked threads can finish,
 --   in case @main@ would return too soon.
 --
---   Usually to be imported via the "Quantum.Random.Store" module.
+--   To be imported from the public "Quantum.Random.Store" module.
 module Quantum.Random.Mutex where
 
 import Control.Concurrent.MVar (MVar, newMVar, takeMVar, putMVar)

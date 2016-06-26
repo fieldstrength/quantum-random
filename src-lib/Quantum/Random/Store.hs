@@ -17,6 +17,7 @@ module Quantum.Random.Store (
   getStoreBytes,
   storeSize,
   save,
+  status,
 
 -- ** Store update
 
@@ -163,6 +164,28 @@ save path = do
                    case i of
                         "yes" -> writeFile path qs *> putStrLn "Data saved."
                         _     -> putStrLn "Save aborted."
+
+
+status :: IO ()
+status = do
+  smin <- getMinStoreSize
+  star <- getTargetStoreSize
+  siz <- storeSize
+  sto <- getStoreFile
+  mapM_ putStrLn
+    [ "Store contains " ++ bitsNBytes siz ++ " of quantum random data."
+    , ""
+    , "Minimum store size set to " ++ bitsNBytes smin ++ "."
+    , "Target store size set to " ++ bitsNBytes star ++ "."
+    , ""
+    , "Local data store location:"
+    , sto
+    , ""
+    ]
+
+bitsNBytes :: Int -> String
+bitsNBytes n = show n ++ bytes ++ show (n*8) ++ " bits)"
+   where bytes = if n /= 1 then " bytes (" else " byte ("
 
 
 ---- Store update ----

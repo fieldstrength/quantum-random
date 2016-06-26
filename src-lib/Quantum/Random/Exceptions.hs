@@ -14,8 +14,7 @@ module Quantum.Random.Exceptions (
   throwLeft,
 
 -- ** Catching
-  qrnExceptHandler,
-  handleQRNExceptions
+  reportQRNExceptions
 
 ) where
 
@@ -30,7 +29,7 @@ data QRNException = ParseResponseError String
 
 instance Show QRNException where
   show (ParseResponseError str) = unlines ["Problem parsing response from ANU server:", str]
-  show (ParseSettingsError str) = unlines ["Problem loading or interpreting settings file:", str]
+  show (ParseSettingsError str) = unlines ["Problem interpreting settings file:", str]
 
 instance Exception QRNException
 
@@ -45,13 +44,13 @@ throwLeft ioer = do
 
 -- | Action to perform when encountering a 'QRNException'. Report the error via the `Show` instance.
 --   Equivalent to `print` but with a necessarily more specific type.
-qrnExceptHandler :: QRNException -> IO ()
-qrnExceptHandler = print
+reportParseErrors :: QRNException -> IO ()
+reportParseErrors = print
 
-httpExceptHandler :: HttpException -> IO ()
-httpExceptHandler e = putStr "HTTP exception: " *> print e
+reportHTTPExceptions :: HttpException -> IO ()
+reportHTTPExceptions e = putStr "HTTP exception: " *> print e
 
--- | Apply to an IO action. When either a 'QRNException' or 'HttpException' is encountered,
+-- | When either a 'QRNException' or 'HttpException' is encountered,
 --   it is reported instead of crashing.
-handleQRNExceptions :: IO () -> IO ()
-handleQRNExceptions = handle qrnExceptHandler . handle httpExceptHandler
+reportQRNExceptions :: IO () -> IO ()
+reportQRNExceptions = handle reportParseErrors . handle reportHTTPExceptions

@@ -51,21 +51,15 @@ library
                        bytestring    >=0.10 && <0.11,
                        http-conduit  >=2.1  && <2.2,
                        ansi-terminal >=0.6  && <0.7,
-                       transformers  >=0.4  && <0.6,
                        terminal-size >=0.3  && <0.4,
-                       directory     >=1.2  && <1.3,
-
-                       -- for executable
-                       haskeline     >=0.7  && <0.8,
-                       mtl           >=2.2  && <2.3
+                       directory     >=1.2  && <1.3
 
 
   exposed-modules:     Quantum.Random,
                        Quantum.Random.Exceptions,
                        Quantum.Random.ANU,
                        Quantum.Random.Display,
-                       Quantum.Random.Store,
-                       Quantum.Random.Interface
+                       Quantum.Random.Store
 
 
   other-modules:       Quantum.Random.Codec,
@@ -83,6 +77,8 @@ executable qrn
   main-is:             Main.hs
 
   build-depends:       base          >=4.8 && <4.10,
+                       haskeline     >=0.7 && <0.8,
+                       mtl           >=2.2 && <2.3,
                        quantum-random-numbers
 
   default-language:    Haskell2010
