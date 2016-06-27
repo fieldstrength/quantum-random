@@ -26,17 +26,17 @@ getANU :: Int -> IO ByteString
 getANU = simpleHttp . anuURL
 
 
-fetchQResponse :: Int -> IO QResponse
-fetchQResponse n = throwLeft $ parseResponse <$> getANU n
+fetchQRResponse :: Int -> IO QRResponse
+fetchQRResponse n = throwLeft $ parseResponse <$> getANU n
 
 
--- | Fetch QRN data from ANU server as a linked list of bytes via HTTPS. Problems are handled via
---   the custom exception data type 'QRNException'.
+-- | Fetch QRN data from ANU server as a linked list of bytes via HTTPS. Network problems may
+--   result in an `HttpException`. An invalid response triggers a 'QRException'.
 fetchQR :: Int -> IO [Word8]
-fetchQR n = map fromIntegral . qdata <$> fetchQResponse n
+fetchQR n = map fromIntegral . qdata <$> fetchQRResponse n
 
--- | Fetch QRN data from ANU server as a linked list of booleans via HTTPS. Problems are handled
---   via the custom exception data type 'QRNException'.
+-- | Fetch QRN data from ANU server as a linked list of booleans via HTTPS. Network problems may
+--   result in an `HttpException`. An invalid response triggers a 'QRException'.
 fetchQRBits :: Int -> IO [Bool]
 fetchQRBits n = concat . map w8bools <$> fetchQR n
 

@@ -96,10 +96,10 @@ getSettingsFile = getDataFileName "qr_data/qr_settings.json"
 
 ---- Settings access and update ----
 
-getSettings :: IO QSettings
+getSettings :: IO QRSettings
 getSettings = throwLeft . fmap (parseSettings . Lazy.fromStrict) $ readFile =<< getSettingsFile
 
-putSettings :: QSettings -> IO ()
+putSettings :: QRSettings -> IO ()
 putSettings qs = do
   file <- getSettingsFile
   writeFile file . Lazy.toStrict . encode $ qs
@@ -165,7 +165,8 @@ save path = do
                         "yes" -> writeFile path qs *> putStrLn "Data saved."
                         _     -> putStrLn "Save aborted."
 
-
+-- | Display status information: Current store size, minimum size setting, target
+--   size setting, default display style and data file path.
 status :: IO ()
 status = do
   smin <- getMinStoreSize

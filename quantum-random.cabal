@@ -1,5 +1,5 @@
 name:                quantum-random
-version:             0.5.0.0
+version:             0.6.0
 synopsis:            Retrieve, store and manage real quantum random data.
 
 description:         Retrieve, store, manage and visualize real quantum random data
@@ -83,7 +83,7 @@ executable qrand
 
   default-language:    Haskell2010
 
-test-suite test-qrn
+test-suite test-quantum-random
   type:             exitcode-stdio-1.0
   hs-source-dirs:   test
   main-is:          test-quantum-random.hs

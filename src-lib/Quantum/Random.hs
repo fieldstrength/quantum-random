@@ -1,5 +1,4 @@
--- | This module reexports all public modules providing functionality for retriving, storing, managing
---   and displaying quantum random numbers from the Australian National University QRN server.
+-- | This module reexports all the public modules in the package.
 module Quantum.Random (
   module Quantum.Random.ANU,
   module Quantum.Random.Store,

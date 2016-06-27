@@ -1,8 +1,12 @@
 # quantum-random-numbers
 
 [![Build Status](https://travis-ci.org/BlackBrane/quantum-random.svg?branch=master)](https://travis-ci.org/BlackBrane/quantum-random)
+[![Hackage](https://img.shields.io/hackage/v/quantum-random.svg)](http://hackage.haskell.org/package/quantum-random)
+[![quantum-random on Stackage Nightly](http://stackage.org/package/quantum-random/badge/nightly)](http://stackage.org/nightly/package/quantum-random)
 
-Retrieve, store and manage real quantum random numbers. They are obtained by measuring vacuum fluctuations of the electromagnetic field, and served by [Australian National University](http://qrng.anu.edu.au/).
+
+
+Retrieve, store and manage real quantum random numbers. They originate from vacuum fluctuations of the electromagnetic field, and are served by [Australian National University](http://qrng.anu.edu.au/).
 
 The package is designed to ensure quantum random data is promptly available for your application by keeping a sufficient amount locally. When depleted to a specified level, more data is downloaded concurrently over SSL. It can be configured by specifying the minimum store size (below which more data are retrieved) the target store size (the size of the store after retrieval) and the default display style.
 
@@ -108,7 +112,7 @@ Besides `QRException`, the operations for retrieving from the ANU server use `si
 
 ### Physical Origin
 
-Detailed information on the physical setup used to produces these random number streams can be
+Detailed information on the physical setup used to produce these random numbers can be
 found in these papers:
 
 * [Real time demonstration of high bitrate quantum random number generation with coherent laser light](http://arxiv.org/abs/1107.4438)

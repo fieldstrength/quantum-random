@@ -10,7 +10,7 @@ module Quantum.Random.Exceptions (
 -- * QRN exception data type
   QRException (..),
 
--- ** Throwing
+-- * Throwing
   throwLeft
 
 ) where

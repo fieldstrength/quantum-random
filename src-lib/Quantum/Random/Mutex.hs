@@ -15,7 +15,11 @@ import Control.Concurrent      (forkIO, ThreadId)
 --   unit is present, access is available. IO operations that need access to the store or settings
 --   file remove it from the `MVar` before doing so, and then replace it when they're done. Then
 --   whenever two such operations might otherwise interfere, they will instead wait their turn to
---   obtain the access.
+--   obtain the access. This functionality is implemented with 'initAccessControl' and 'withAccess'.
+--
+--   Secondarily, it also contains another `MVar` @()@ used to prevent premature program exit when
+--   a forked thread is running, implemented as 'forkSafely' and 'exitSafely'. The @qrand@
+--   executable uses this to ensure that a concurrent operation to add data from ANU can finish.
 data AccessControl = AccessControl {
   accessControl :: MVar (),
   exitControl   :: MVar ()
