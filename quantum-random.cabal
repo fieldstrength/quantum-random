@@ -32,7 +32,8 @@ cabal-version:       >=1.10
 data-files:          qr_data/qr_store.bin,
                      qr_data/qr_settings.json
 
-extra-source-files:  README.md
+extra-source-files:  README.md,
+                     CHANGELOG.md
 
 source-repository head
   type:     git
