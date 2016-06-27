@@ -1,7 +1,10 @@
--- | This module provides functionality for retriving and parsing the
+-- | This module provides functionality for retrieving and parsing the
 --   quantum random number data from the Australian National University QRN server.
 --
---   Usually to be imported via the "Quantum.Random" module.
+--   This module can be used when one only wants to use live data directly from the server,
+--   without using any of the data store functionality.
+--
+--   In most other cases it should be imported via the "Quantum.Random" module.
 module Quantum.Random.ANU (
 
 -- ** QRN data retrieval
@@ -30,13 +33,13 @@ fetchQRResponse :: Int -> IO QRResponse
 fetchQRResponse n = throwLeft $ parseResponse <$> getANU n
 
 
--- | Fetch QRN data from ANU server as a linked list of bytes via HTTPS. Network problems may
---   result in an `HttpException`. An invalid response triggers a 'QRException'.
+-- | Fetch quantum random data from ANU server as a linked list of bytes via HTTPS. Network
+--   problems may result in an `HttpException`. An invalid response triggers a 'QRException'.
 fetchQR :: Int -> IO [Word8]
 fetchQR n = map fromIntegral . qdata <$> fetchQRResponse n
 
--- | Fetch QRN data from ANU server as a linked list of booleans via HTTPS. Network problems may
---   result in an `HttpException`. An invalid response triggers a 'QRException'.
+-- | Fetch QRN data from ANU server as a linked list of booleans via HTTPS. Network
+--   problems may result in an `HttpException`. An invalid response triggers a 'QRException'.
 fetchQRBits :: Int -> IO [Bool]
 fetchQRBits n = concat . map w8bools <$> fetchQR n
 

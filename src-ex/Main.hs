@@ -12,23 +12,25 @@ import System.Environment        (getArgs)
 
 ---- Structure of commands ----
 
--- | Represents the settings saved in the settings file. This data type may be
+-- | Represents the settings saved in the settings file. This data type could be
 --   extended in the future.
-data Setting = MinSize | TargetSize
+data Setting = MinSize Int
+             | TargetSize Int
+             | DefaultStyle DisplayStyle
 
 -- | Represents the supported commands.
 data Command = Add Int
-             | Observe Int DisplayStyle
-             | Peek Int DisplayStyle
-             | PeekAll DisplayStyle
-             | Live Int DisplayStyle
+             | Observe Int (Maybe DisplayStyle)
+             | Peek    Int (Maybe DisplayStyle)
+             | PeekAll     (Maybe DisplayStyle)
+             | Live    Int (Maybe DisplayStyle)
              | Fill
              | RestoreDefaults
              | Reinitialize
              | Status
              | Save String
              | Load String
-             | Set Setting Int
+             | Set Setting
              | Help
              | Quit
 
@@ -37,26 +39,27 @@ helpMsg = unlines
   [ ""
   , "======= Available commands ======="
   , ""
-  , "add [# bytes]     –  Request specified number of QR bytes from ANU and add them to the store"
-  , "live [# bytes]    –  Request specified number of QR bytes from ANU and display them directly"
-  , "observe [# bytes] –  Take and display QR data from store, retrieving more if needed. Those taken from the store are removed"
+  , "add [# bytes]     –  Request specified number of quantum random bytes from ANU and add them to the store"
+  , "live [# bytes]    –  Request specified number of quantum random bytes from ANU and display them directly"
+  , "observe [# bytes] –  Take and display data from store, retrieving more if needed. Those taken from the store are removed"
   , "peek [# bytes]    –  Display up to the specified number of bytes from the store without removing them"
   , "peekAll           –  Display all data from the store without removing them"
   , "fill              –  Fill the store to the target size with live ANU quantum random numbers"
-  , "restoreDefaults   –  Restore default settings"
+  , "restore           –  Restore default settings"
   , "reinitialize      –  Restore default settings, and refill store to target size"
   , "status            –  Display status of store and settings"
-  , "save [filepath]   –  save binary qr data file to specified file path"
+  , "save [filepath]   –  save binary quantum random store file to specified file path"
   , "load [filepath]   –  load binary file and append data to store"
   , "set minSize       –  Set the number of bytes below which the store is refilled"
   , "set targetSize    –  Set the number of bytes to have after refilling"
+  , "set style [style] –  Set the default display style"
   , "help/?            –  Display this text"
   , "quit              –  Quit"
   , ""
   , "======= Display options ======="
   , ""
   , "Commands that display QR data can take an optional display style modifier: "
-  , "'colors', 'spins', 'bits', 'hex', 'colorSpins', 'colorBits', 'colorHex' (the default)."
+  , "'spins', 'bits', 'hex', 'colors', 'colorSpins', 'colorBits', 'colorHex' (the default)."
   , ""
   , "Examples:"
   , "\"observe 25 colorspins\""
@@ -65,8 +68,35 @@ helpMsg = unlines
 
 ---- Parsing commands ----
 
-readDigit :: Char -> Maybe Int
-readDigit c = if isDigit c then Just (read [c]) else Nothing
+cwords :: String -> [String]
+cwords = words . map toLower
+
+readCommand :: String -> Maybe Command
+readCommand (cwords -> ["add",n])        = Add <$> readInt n
+readCommand (cwords -> ["peekall"])      = Just (PeekAll Nothing)
+readCommand (cwords -> ["peekall",s])    = PeekAll <$> readStyle s
+readCommand (cwords -> ["peek","all"])   = Just (PeekAll Nothing)
+readCommand (cwords -> ["peek","all",s]) = PeekAll <$> readStyle s
+readCommand (cwords -> ["observe",n])    = Observe <$> readInt n <*> Just Nothing
+readCommand (cwords -> ["observe",n,s])  = Observe <$> readInt n <*> readStyle s
+readCommand (cwords -> ["peek",n])       = Peek <$> readInt n <*> Just Nothing
+readCommand (cwords -> ["peek",n,s])     = Peek <$> readInt n <*> readStyle s
+readCommand (cwords -> ["live",n])       = Live <$> readInt n <*> Just Nothing
+readCommand (cwords -> ["live",n,s])     = Live <$> readInt n <*> readStyle s
+readCommand (cwords -> ["fill"])         = Just Fill
+readCommand (cwords -> ["restore"])      = Just RestoreDefaults
+readCommand (cwords -> ["reinitialize"]) = Just Reinitialize
+readCommand (cwords -> ["status"])       = Just Status
+readCommand (savePattern -> Just path)   = Just (Save path)
+readCommand (loadPattern -> Just path)   = Just (Load path)
+readCommand (cwords -> ["help"])         = Just Help
+readCommand (cwords -> ["?"])            = Just Help
+readCommand (cwords -> ["quit"])         = Just Quit
+readCommand (cwords -> ["q"])            = Just Quit
+readCommand (cwords -> "set" : ws)       = Set <$> readSetting ws
+readCommand _                            = Nothing
+
+--- Read Integers
 
 readInt :: String -> Maybe Int
 readInt = readIntRev . reverse
@@ -75,40 +105,40 @@ readInt = readIntRev . reverse
          readIntRev [c]      = readDigit c
          readIntRev (c:x:xs) = fmap (+) (readDigit c) <*> fmap (*10) (readIntRev (x:xs))
 
+readDigit :: Char -> Maybe Int
+readDigit c = if isDigit c then Just (read [c]) else Nothing
 
-cwords :: String -> [String]
-cwords = words . map toLower
+--- Read Settings
 
-readCommand :: String -> Maybe Command
-readCommand (cwords -> ["add",n])        = Add <$> readInt n
-readCommand (cwords -> ["peekall"])      = Just (PeekAll ColorHex)
-readCommand (cwords -> ["peekall",s])    = PeekAll <$> parseStyle s
-readCommand (cwords -> ["peek","all"])   = Just (PeekAll ColorHex)
-readCommand (cwords -> ["peek","all",s]) = PeekAll <$> parseStyle s
-readCommand (cwords -> ["observe",n])    = Observe <$> readInt n <*> Just ColorHex
-readCommand (cwords -> ["observe",n,s])  = Observe <$> readInt n <*> parseStyle s
-readCommand (cwords -> ["peek",n])       = Peek <$> readInt n <*> Just ColorHex
-readCommand (cwords -> ["peek",n,s])     = Peek <$> readInt n <*> parseStyle s
-readCommand (cwords -> ["live",n])       = Live <$> readInt n <*> Just ColorHex
-readCommand (cwords -> ["live",n,s])     = Live <$> readInt n <*> parseStyle s
-readCommand (cwords -> ["fill"])         = Just Fill
-readCommand (cwords -> ["restore"])      = Just RestoreDefaults
-readCommand (cwords -> ["reinitialize"]) = Just Reinitialize
-readCommand (cwords -> ["status"])       = Just Status
-readCommand (cwords -> ["save",path])    = Just (Save path)
-readCommand (cwords -> ["load",path])    = Just (Load path)
-readCommand (cwords -> ["help"])         = Just Help
-readCommand (cwords -> ["?"])            = Just Help
-readCommand (cwords -> ["quit"])         = Just Quit
-readCommand (cwords -> ["q"])            = Just Quit
-readCommand (cwords -> ["set",st,n])     = Set <$> readSetting st <*> readInt n
-readCommand _                            = Nothing
+readSetting :: [String] -> Maybe Setting
+readSetting ["minsize",n]      = MinSize <$> readInt n
+readSetting ["tarsize",n]      = TargetSize <$> readInt n
+readSetting ["targetsize",n]   = TargetSize <$> readInt n
+readSetting ["defaultstyle",s] = DefaultStyle <$> parseStyle s
+readSetting ["style",s]        = DefaultStyle <$> parseStyle s
+readSetting _                  = Nothing
 
-readSetting :: String -> Maybe Setting
-readSetting (cwords -> ["minsize"])    = Just MinSize
-readSetting (cwords -> ["tarsize"])    = Just TargetSize
-readSetting (cwords -> ["targetsize"]) = Just TargetSize
-readSetting _                          = Nothing
+--- Read Display Style
+
+readStyle :: String -> Maybe (Maybe DisplayStyle)
+readStyle = fmap Just . parseStyle
+
+--- Read save/load commands
+--- Used because 'cwords' pattern used elsewhere loses upper/lowercase information
+
+savePattern :: String -> Maybe String
+savePattern str =
+  case (cwords str) of
+    [_]        -> Nothing
+    "save" : _ -> return . unwords . tail . words $ str
+    _          -> Nothing
+
+loadPattern :: String -> Maybe String
+loadPattern str =
+  case (cwords str) of
+    [_]         -> Nothing
+    "load" : _ -> return . unwords . tail . words $ str
+    _          -> Nothing
 
 
 ---- Describing/announcing commands ----
@@ -139,49 +169,26 @@ announce c = let str = description c in if str == "" then pure () else putStrLn 
 --   IO action. This is the simple version, whereas 'interpSafe' ensures these actions cannot
 --   interfere as they access local files.
 interp :: Command -> IO ()
-interp (Add n)            = addToStore n
-interp (Observe n style)  = observe style n
-interp (Peek n style)     = peek style n
-interp (PeekAll style)    = peekAll style
-interp (Live n style)     = fetchQR n >>= display style
-interp Fill               = fill
-interp RestoreDefaults    = restoreDefaults
-interp Reinitialize       = reinitialize
-interp Status             = status
-interp (Save path)        = save path
-interp (Load path)        = load path
-interp (Set MinSize n)    = setMinStoreSize n
-interp (Set TargetSize n) = setTargetStoreSize n
-interp Help               = putStrLn helpMsg
-interp Quit               = pure ()
-
+interp (Add n)                = addToStore n
+interp (Observe n msty)       = observe msty n
+interp (Peek n msty)          = peek msty n
+interp (PeekAll msty)         = peekAll msty
+interp (Live n msty)          = fetchQR n >>= display_ msty
+interp Fill                   = fill
+interp RestoreDefaults        = restoreDefaults
+interp Reinitialize           = reinitialize
+interp Status                 = status
+interp (Save path)            = save path
+interp (Load path)            = load path
+interp (Set (MinSize n))      = setMinStoreSize n
+interp (Set (TargetSize n))   = setTargetStoreSize n
+interp (Set (DefaultStyle s)) = setDefaultStyle s
+interp Help                   = putStrLn helpMsg
+interp Quit                   = pure ()
 
 -- | Perform command, via 'interp', after printing a description to STDOUT.
 command :: Command -> IO ()
 command c = (announce c *> interp c)
-
-
-
-
-
-
-type QReader = ReaderT AccessControl IO
-
--- | Controlled-access variant of 'interp'.
-interpSafe :: Command ->  QReader ()
-interpSafe (Add n)       = ReaderT $ \a -> addSafely a n
-interpSafe (Observe n s) = ReaderT $ \a -> observeSafely a s n
-interpSafe Quit          = ReaderT exitSafely
-interpSafe c@(Live _ _)  = liftIO $ interp c
-interpSafe c@Help        = liftIO $ interp c
-interpSafe c             = ReaderT $ \a -> withAccess a (interp c)
-
--- | Controlled-access variant of 'command'. Performs command via 'interpSafe' after printing a
---   description to STDOUT, with any exceptions reported there as well.
-commandSafe :: Command -> QReader ()
-commandSafe c = do
-  liftIO $ announce c
-  interpSafe c
 
 -- | Given a string, attempt to interpret it as an IO action, and either perform it or report
 --   the parse failure.
@@ -189,11 +196,31 @@ execCommand :: String -> IO ()
 execCommand (readCommand -> Just c) = command c
 execCommand _                       = errorMsg
 
-
 errorMsg :: IO ()
 errorMsg = do
   putStrLn "***** QR Error: Could not parse command."
   putStrLn "***** Enter 'help' or '?' to see list of available commands."
+
+
+---- Interpreting commands in the lifted monadic context ----
+
+type QReader = ReaderT AccessControl IO
+
+-- | Controlled-access variant of 'interp'.
+interpSafe :: Command -> QReader ()
+interpSafe (Add n)       = ReaderT $ \a -> addSafely a n
+interpSafe (Observe n s) = ReaderT $ \a -> observeSafely a s n
+interpSafe Quit          = ReaderT exitSafely
+interpSafe c@(Live _ _)  = liftIO $ interp c
+interpSafe c@Help        = liftIO $ interp c
+interpSafe c             = ReaderT $ \a -> withAccess a (interp c)
+
+-- | Controlled-access, ReaderT-based variant of 'command'. Performs command via 'interpSafe' after
+--   printing a description to STDOUT.
+commandSafe :: Command -> QReader ()
+commandSafe c = do
+  liftIO $ announce c
+  interpSafe c
 
 
 ---- Core program code ----
@@ -202,14 +229,14 @@ type QR = InputT (ReaderT AccessControl IO)
 
 qrand :: QR ()
 qrand = do
-  str <- getInputLine "QRand> "
+  str <- getInputLine "quantum-random> "
   let jc = readCommand =<< str
   case jc of
        Just Quit -> lift (commandSafe Quit)
        Just c    -> lift (commandSafe c)    *> qrand
        Nothing   -> liftIO errorMsg         *> qrand
 
--- | The main function associated with the executable @qrn@. The interactive QRN manager program.
+-- | The main function associated with the executable @qrand@, the interactive manager program.
 main :: IO ()
 main = do
   args <- getArgs

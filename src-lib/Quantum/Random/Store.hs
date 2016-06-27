@@ -1,10 +1,18 @@
--- | This module provides functionality for quantum random number operations involving
+-- | This module provides functionality for quantum random data operations involving
 --   the local data store and/or the settings file.
 --
---   Some functions come in special access-controlled variants, namely those functions in which
---   access permission is only required in particular branches or phases of execution. All other
---   operations involving the local files (which is most of them) are simply wrapped in a
---   'withAccess' to ensure coordinated access.
+--   It also provides a way to coordinate access to these local files.
+--   See 'AccessControl' for details. Any IO operation that uses these files can used in a
+--   coordinated way by wrapping them in a 'withAccess'.
+--
+--   Some of these functions already come in special access-controlled variants because they only
+--   require access in particular branches or phases of execution.
+--   In particular we have 'addSafely', 'extractSafely' and 'observeSafely'.
+--
+--   Finally, there is functionality to ensure that a forked thread is allowed to finish, in case
+--   main would otherwise return too soon. This is primarily needed to provide 'addConcurrently',
+--   but it can be re-used by forking a thread with 'forkSafely' and exiting the program with
+--   'exitSafely'.
 --
 --   Usually to be imported via the "Quantum.Random" module.
 module Quantum.Random.Store (
@@ -26,6 +34,7 @@ module Quantum.Random.Store (
   appendToStore,
   addToStore,
   addSafely,
+  addConcurrently,
   fill,
   refill,
   load,
@@ -42,17 +51,20 @@ module Quantum.Random.Store (
   observeSafely,
   peek,
   peekAll,
+  display_,
 
 -- * Settings file operations
 -- ** Settings access
 
   getMinStoreSize,
   getTargetStoreSize,
+  getDefaultStyle,
 
 -- ** Settings update
 
   setMinStoreSize,
   setTargetStoreSize,
+  setDefaultStyle,
   restoreDefaults,
   reinitialize,
 
@@ -80,6 +92,7 @@ import Data.Word          (Word8)
 import Data.ByteString    (ByteString, readFile, writeFile, pack, unpack, hPut, length)
 import qualified Data.ByteString.Lazy as Lazy
                           (fromStrict, toStrict)
+import Control.Concurrent (ThreadId)
 import Prelude     hiding (readFile, writeFile, length)
 
 
@@ -112,6 +125,10 @@ getMinStoreSize = minStoreSize <$> getSettings
 getTargetStoreSize :: IO Int
 getTargetStoreSize = targetStoreSize <$> getSettings
 
+-- | Query the settings file for the default display style.
+getDefaultStyle :: IO DisplayStyle
+getDefaultStyle = defaultDisplayStyle <$> getSettings
+
 -- | Update the minimum store size setting in the settings file.
 setMinStoreSize :: Int -> IO ()
 setMinStoreSize n = updateMinSize n <$> getSettings >>= putSettings
@@ -120,11 +137,15 @@ setMinStoreSize n = updateMinSize n <$> getSettings >>= putSettings
 setTargetStoreSize :: Int -> IO ()
 setTargetStoreSize n = updateTarSize n <$> getSettings >>= putSettings
 
+-- | Update the default 'DisplayStyle' setting in the settings file.
+setDefaultStyle :: DisplayStyle -> IO ()
+setDefaultStyle sty = updateDefaultStyle sty <$> getSettings >>= putSettings
+
 -- | Restore default settings.
 restoreDefaults :: IO ()
 restoreDefaults = putSettings defaults
 
--- | Restore default settings and fill up the store.
+-- | Restore default settings and 'refill' the store.
 reinitialize :: IO ()
 reinitialize = restoreDefaults *> refill
 
@@ -171,13 +192,16 @@ status :: IO ()
 status = do
   smin <- getMinStoreSize
   star <- getTargetStoreSize
+  sty  <- getDefaultStyle
   siz <- storeSize
   sto <- getStoreFile
   mapM_ putStrLn
     [ "Store contains " ++ bitsNBytes siz ++ " of quantum random data."
     , ""
     , "Minimum store size set to " ++ bitsNBytes smin ++ "."
-    , "Target store size set to " ++ bitsNBytes star ++ "."
+    , "Target  store size set to " ++ bitsNBytes star ++ "."
+    , ""
+    , "Default display style: " ++ show sty ++ "."
     , ""
     , "Local data store location:"
     , sto
@@ -215,6 +239,10 @@ addSafely :: AccessControl -> Int -> IO ()
 addSafely acc n = do
   bs <- pack <$> fetchQR n
   withAccess acc (appendToStore bs)
+
+-- | Fork a thread to add data to the store concurrently.
+addConcurrently :: AccessControl -> Int -> IO ThreadId
+addConcurrently acc n = forkSafely acc $ addSafely acc n
 
 -- | Load binary data from specified file path, append it to the data store.
 load :: String -> IO ()
@@ -275,7 +303,7 @@ extractSafely acc n = do
                      let (xs,ys) = splitAt n $ qs ++ anu
                      withAccess acc $ putStoreBytes ys
                      pure xs
-       (GT,_) -> do forkSafely acc $ addSafely acc needed
+       (GT,_) -> do addConcurrently acc needed
                     let (xs,ys) = splitAt n qs
                     withAccess acc $ putStoreBytes ys
                     pure xs
@@ -283,22 +311,28 @@ extractSafely acc n = do
                 withAccess acc $ putStoreBytes ys
                 pure xs
 
+-- | Like 'display' only taking a `Maybe` 'DisplayStyle' as the first argument, where `Nothing`
+--   signifies using the default display style.
+display_ :: Maybe DisplayStyle -> [Word8] -> IO ()
+display_ (Just style) ws = display style ws
+display_ Nothing      ws = getDefaultStyle >>= flip display ws
+
 -- | Destructively view the specified number of bytes, via 'extract'.
 --   The name connotes the irreversibility of quantum measurement.
 --   Measuring quantum data (analogously, viewing or using) expends them as a randomness resource.
 --   Thus they are discarded. Use 'peek' if instead you wish the data to be kept.
-observe :: DisplayStyle -> Int -> IO ()
-observe s n = extract n >>= display s
+observe :: Maybe DisplayStyle -> Int -> IO ()
+observe ms n = extract n >>= display_ ms
 
 -- | Destructively view the specified number of bytes, via 'extractSafely'.
 --   Access-controlled version of 'observe'.
-observeSafely :: AccessControl -> DisplayStyle -> Int -> IO ()
-observeSafely a s n = extractSafely a n >>= display s
+observeSafely :: AccessControl -> Maybe DisplayStyle -> Int -> IO ()
+observeSafely a ms n = extractSafely a n >>= display_ ms
 
 -- | Non-destructively view the specified number of bytes.
-peek :: DisplayStyle -> Int -> IO ()
-peek s n = take n <$> getStoreBytes >>= display s
+peek :: Maybe DisplayStyle -> Int -> IO ()
+peek ms n = take n <$> getStoreBytes >>= display_ ms
 
 -- | Non-destructively view all data in the store.
-peekAll :: DisplayStyle -> IO ()
-peekAll s = getStoreBytes >>= display s
+peekAll :: Maybe DisplayStyle -> IO ()
+peekAll ms = getStoreBytes >>= display_ ms

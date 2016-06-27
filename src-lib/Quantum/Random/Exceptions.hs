@@ -1,8 +1,10 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 
--- | Provides a data type describing possible error conditions for the package,
---   instantiating the 'Exception' type class, and basic functionality for throwing and
---   catching these exceptions.
+-- | Provides a data type describing the parsing errors that are possible, though unlikely,
+--   to be encountered.
+--
+--   Note that since network requests are handled by the @http-conduit@ package,
+--   the corresponding 'HttpException' is also one a user may wish to handle.
 --
 --   Usually to be imported via the "Quantum.Random" module.
 module Quantum.Random.Exceptions (

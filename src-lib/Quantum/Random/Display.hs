@@ -1,4 +1,5 @@
-{-# LANGUAGE ViewPatterns #-}
+{-# LANGUAGE DeriveGeneric,
+             ViewPatterns   #-}
 
 -- | Functionality for display of binary data. Seeing a visual representation of quantum random
 --   data lets a user visually verify that it is indeed random.
@@ -12,6 +13,8 @@ module Quantum.Random.Display (
 
 ) where
 
+import GHC.Generics                 (Generic)
+import Data.Aeson                   (FromJSON,ToJSON)
 import System.Console.ANSI          (Color (..), ColorIntensity (..))
 import System.Console.Ansigraph     (AnsiColor (AnsiColor), colorStr, fromFG)
 import System.Console.Terminal.Size (size,width)
@@ -21,14 +24,18 @@ import Data.Char                    (toLower)
 import Numeric                      (showHex)
 
 
--- | Represents supported methods for displaying binary data.
+-- | Represents the supported methods for displaying binary data.
+--   All styles show data separated by byte except for 'Hex'.
 data DisplayStyle = Colors
                   | Spins
                   | Bits
                   | Hex
                   | ColorSpins
                   | ColorBits
-                  | ColorHex deriving (Show,Eq)
+                  | ColorHex deriving (Generic,Show,Eq)
+
+instance FromJSON DisplayStyle
+instance ToJSON   DisplayStyle
 
 -- | Parse a string to one of the supported display styles.
 parseStyle :: String -> Maybe DisplayStyle
@@ -100,8 +107,8 @@ spinStr :: FourBits -> String
 spinStr (a,b,c,d) = [spinChar a, spinChar b, spinChar c, spinChar d]
 
 hexStr :: Word8 -> String
-hexStr w = let hx = showHex w " "
-           in  if length hx < 3 then '0' : hx else hx
+hexStr w = let hx = showHex w ""
+           in  if length hx < 2 then '0' : hx else hx
 
 
 ---- Byte display functions ----
@@ -134,7 +141,7 @@ hexColorDisplay w = do
   let (x,y) = sepByte w
   colorBlock (color x)
   colorBlock (color y)
-  putStr $ ' ' : hexStr w
+  putStr $ " " ++ hexStr w ++ " "
 
 colorDisplay :: Word8 -> IO ()
 colorDisplay (sepByte -> (x,y)) = do
@@ -160,8 +167,8 @@ byteSize ColorBits  = 13
 byteSize ColorSpins = 13
 byteSize Bits       = 11
 byteSize Spins      = 11
-byteSize Hex        = 3
-byteSize _          = 1
+byteSize Hex        = 2
+byteSize Colors     = 1
 
 insertEvery :: Int -> a -> [a] -> [a]
 insertEvery n x l = take n l ++ nl
@@ -185,4 +192,5 @@ displayBytes sty ws = do
 
 -- | Display a given list of bytes with the specified display style.
 display :: DisplayStyle -> [Word8] -> IO ()
-display s l = displayBytes s l *> putStrLn ""
+display Hex l = putStrLn $ concatMap hexStr l
+display s   l = displayBytes s l *> putStrLn ""

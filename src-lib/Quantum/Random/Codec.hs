@@ -9,11 +9,13 @@ module Quantum.Random.Codec (
   parseResponse,
   parseSettings,
   updateTarSize,
-  updateMinSize
+  updateMinSize,
+  updateDefaultStyle
 
 ) where
 
 import Quantum.Random.Exceptions
+import Quantum.Random.Display
 
 import GHC.Generics               (Generic)
 import Data.Aeson                 (FromJSON,ToJSON,eitherDecode)
@@ -25,7 +27,7 @@ import Data.Bifunctor             (first)
 
 
 -- | Corresponds to the JSON object returned by ANU, minus 'q' prefixes.
---   'process' function performs appropriate renamings.
+--   The 'process' function performs appropriate renamings.
 data QRResponse = QRResponse { qtype   :: !Text
                              , qlength :: !Int
                              , qdata   :: ![Int]
@@ -33,7 +35,8 @@ data QRResponse = QRResponse { qtype   :: !Text
 
 -- | Corresponds to the JSON object in which settings are stored locally.
 data QRSettings = QRSettings { minStoreSize :: Int
-                             , targetStoreSize :: Int } deriving (Show, Generic)
+                             , targetStoreSize :: Int
+                             , defaultDisplayStyle :: DisplayStyle } deriving (Show, Generic)
 
 
 instance FromJSON QRResponse
@@ -43,7 +46,7 @@ instance ToJSON   QRSettings
 
 -- | Default settings.
 defaults :: QRSettings
-defaults = QRSettings 400 800
+defaults = QRSettings 400 800 ColorHex
 
 -- | Update the minimum store size field of a settings record.
 updateMinSize :: Int -> QRSettings -> QRSettings
@@ -53,6 +56,9 @@ updateMinSize n qs = qs { minStoreSize = n }
 updateTarSize :: Int -> QRSettings -> QRSettings
 updateTarSize n qs = qs { targetStoreSize = n }
 
+-- | Update the default 'DisplayStyle' of a settings record.
+updateDefaultStyle :: DisplayStyle -> QRSettings -> QRSettings
+updateDefaultStyle sty qs = qs { defaultDisplayStyle = sty }
 
 -- | Replace instances of the words "data", "type", "length", with "qdata", "qtype", "qlength"
 --   respectively, to avoid clashes between record field names and keywords/Prelude.

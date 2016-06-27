@@ -5,8 +5,7 @@
 [![quantum-random on Stackage Nightly](http://stackage.org/package/quantum-random/badge/nightly)](http://stackage.org/nightly/package/quantum-random)
 
 
-
-Retrieve, store and manage real quantum random numbers. They originate from vacuum fluctuations of the electromagnetic field, and are served by [Australian National University](http://qrng.anu.edu.au/).
+Retrieve, store and manage real quantum random data, originating from vacuum fluctuations of the electromagnetic field and served by [Australian National University](http://qrng.anu.edu.au/).
 
 The package is designed to ensure quantum random data is promptly available for your application by keeping a sufficient amount locally. When depleted to a specified level, more data is downloaded concurrently over SSL. It can be configured by specifying the minimum store size (below which more data are retrieved) the target store size (the size of the store after retrieval) and the default display style.
 
@@ -33,57 +32,60 @@ qrand fill
 One might also opt to set appropriate store size defaults before filling:
 
 ```
-qrand set minsize 150
-qrand set tarsize 300
-qrand fill
+$ qrand
+quantum-random> set minsize 150
+quantum-random> set tarsize 300
+quantum-random> fill
 ```
 
 #### Available commands
 
 ```
-add [# bytes]     –  Request specified number of QR bytes from ANU and add them to the store
-live [# bytes]    –  Request specified number of QR bytes from ANU and display them directly
-observe [# bytes] –  Take and display QR data from store, retrieving more if needed. Those taken from the store are removed
+add [# bytes]     –  Request specified number of quantum random bytes from ANU and add them to the store
+live [# bytes]    –  Request specified number of quantum random bytes from ANU and display them directly
+observe [# bytes] –  Take and display data from store, retrieving more if needed. Those taken from the store are removed
 peek [# bytes]    –  Display up to the specified number of bytes from the store without removing them
 peekAll           –  Display all data from the store without removing them
 fill              –  Fill the store to the target size with live ANU quantum random numbers
-restoreDefaults   –  Restore default settings
+restore           –  Restore default settings
 reinitialize      –  Restore default settings, and refill store to target size
 status            –  Display status of store and settings
-save [filepath]   –  save binary QR data file to specified file path
+save [filepath]   –  save binary quantum random store file to specified file path
 load [filepath]   –  load binary file and append data to store
 set minSize       –  Set the number of bytes below which the store is refilled
 set targetSize    –  Set the number of bytes to have after refilling
+set style [style] –  Set the default display style
 help/?            –  Display this text
 quit              –  Quit
 ```
 
-Commands are case-insensitive.
+Commands are not case-sensitive.
 
 #### Display options
 
-By default, data is displayed by showing a color for every 4 bits (every half-byte). One can also
-specify the data to be displayed as binary, or equivalently with up/down arrows representing quantum
-mechanical spin states. Either of these latter two can be combined with the colors as well (thus
-explicating the encoding).
+There are a number of available styles for displaying the binary data, including (or combined with) printing a colored block for every 4 bits (every half-byte). The basic display styles are hex, binary, or equivalently arrows (↑/↓) representing quantum mechanical spin states.
 
 So the available display modifiers are:
-* `colors` (the default)
+
+* `hex`/`hexidecimal`
 * `bits`/`binary`
 * `spins`
+* `colors`
+* `colorHex` __(default)__
 * `colorBits`/`colorBinary`
 * `colorSpins`
 
-Simply type these modifiers after any display command. For example:
 
-`observe 25 colorspins`
+You can enter these modifiers after any display command. For example:
+
+`observe 100 colorspins`
 
 `live 50 binary`
 
 ### Usage in Haskell code
 
 All user-facing functionality may be accessed from the `Quantum.Random` module, though a user can
-also just import particular constituent modules when only a subset of the functionality is needed.
+also import the constituent modules when only a subset of the functionality is needed.
 
 The most basic service is to retrieve data directly from ANU, which is provided by functions
 from the `Quantum.Random.ANU` module. There are two variants yielding either a list of bytes or a
@@ -103,11 +105,11 @@ This also invokes the machinery to retrieve more data and refill the store as ne
 
 #### Exceptions
 
-Most of the IO actions in the package use a custom exception type to handle the unlikely
-error conditions that may be encountered. Namely parse failure of either the JSON response object
-of the API, or the settings file. See the `Quantum.Random.Exceptions` module for details.
+Most of the IO actions in the package use a custom exception type `QRException` to handle the unlikely
+parse errors that may be encountered. Namely parse failure of either the JSON response object
+of the API, or the settings file (which never needs to be edited directly). See the `Quantum.Random.Exceptions` module for details.
 
-Besides `QRException`, the operations for retrieving from the ANU server use `simpleHttp` from the
+Beyond this, the operations for retrieving from the ANU server use `simpleHttp` from the
 `http-conduit` package and therefore may throw an `HttpException`.
 
 ### Physical Origin

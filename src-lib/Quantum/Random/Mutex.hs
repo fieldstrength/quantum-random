@@ -1,11 +1,3 @@
--- | Used to coordinate access to the store and settings files to ensure that concurrent
---   processes cannot interfere by operating on the files at the same time. Uses an `MVar ()`.
---   It could also be used to control access to /any/ resource, not just these particular files.
---
---   It also carries an additional `MVar ()` the ensures certain forked threads can finish,
---   in case @main@ would return too soon.
---
---   To be imported from the public "Quantum.Random.Store" module.
 module Quantum.Random.Mutex where
 
 import Control.Concurrent.MVar (MVar, newMVar, takeMVar, putMVar)
@@ -51,6 +43,7 @@ holdExitWhile (AccessControl _ ex) io = do
 forkSafely :: AccessControl -> IO () -> IO ThreadId
 forkSafely acc io = forkIO (holdExitWhile acc io)
 
--- | Exit with this operation to ensure a thread forked with 'holdExit' can finish before @main@ returns.
+-- | Exit with this operation to ensure a thread forked with 'forkSafely' can finish before
+--   @main@ returns.
 exitSafely :: AccessControl -> IO ()
 exitSafely = return . takeMVar =<< exitControl

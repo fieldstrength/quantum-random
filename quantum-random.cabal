@@ -2,11 +2,9 @@ name:                quantum-random
 version:             0.6.0
 synopsis:            Retrieve, store and manage real quantum random data.
 
-description:         Retrieve, store, manage and visualize real quantum random data
-                     obtained by measuring vacuum fluctuations of the electromagnetic field
-                     and served by Australian National University. The functionality is
-                     provided both by an executable program `qrand` and a haskell module
-                     "Quantum.Random".
+description:         Retrieve, store and manage real quantum random data, originating from vacuum
+                     fluctuations of the electromagnetic field and served by Australian National
+                     University.
                      .
 
                      The package is designed to ensure quantum random data is promptly available for
