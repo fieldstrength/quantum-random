@@ -1,4 +1,4 @@
-# quantum-random-numbers
+# quantum-random
 
 [![Build Status](https://travis-ci.org/BlackBrane/quantum-random.svg?branch=master)](https://travis-ci.org/BlackBrane/quantum-random)
 [![Hackage](https://img.shields.io/hackage/v/quantum-random.svg)](http://hackage.haskell.org/package/quantum-random)
