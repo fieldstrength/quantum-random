@@ -54,7 +54,7 @@ helpMsg = unlines
   , "set targetSize    –  Set the number of bytes to have after refilling"
   , "set style [style] –  Set the default display style"
   , "help/?            –  Display this text"
-  , "quit              –  Quit"
+  , "quit/q            –  Quit"
   , ""
   , "======= Display options ======="
   , ""
@@ -149,7 +149,7 @@ bitsNBytes n = show n ++ bytes ++ show (n*8) ++ " bits)"
 
 description :: Command -> String
 description (Add n)         = "Adding " ++ bitsNBytes n ++ " of quantum random data to store"
-description (Live n _)      = "Viewing up to " ++ bitsNBytes n ++ " of live quantum random data from ANU"
+description (Live n _)      = "Retrieving " ++ bitsNBytes n ++ " of live quantum random data from ANU"
 description (Observe n _)   = "Observing " ++ bitsNBytes n ++ " of quantum random data from store"
 description (Peek n _)      = "Viewing up to " ++ bitsNBytes n ++ " of quantum random data from store"
 description (PeekAll _)     = "Viewing all quantum random data from store"
