@@ -1,5 +1,9 @@
 # Revision history for `quantum-random`
 
+#### 0.6.2
+
+* Update dependency for `ansigraph-0.3`.
+
 #### 0.6.1
 
 * Update dependency for `http-conduit-2.2`.

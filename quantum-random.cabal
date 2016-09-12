@@ -1,5 +1,5 @@
 name:                quantum-random
-version:             0.6.1
+version:             0.6.2
 synopsis:            Retrieve, store and manage real quantum random data.
 
 description:         Retrieve, store and manage real quantum random data, originating from vacuum

@@ -50,8 +50,8 @@ fill              –  Fill the store to the target size with live ANU quantum r
 restore           –  Restore default settings
 reinitialize      –  Restore default settings, and refill store to target size
 status            –  Display status of store and settings
-save [filepath]   –  save binary quantum random store file to specified file path
-load [filepath]   –  load binary file and append data to store
+save [file path]  –  save binary quantum random store file to specified file path
+load [file path]  –  load binary file and append data to store
 set minSize       –  Set the number of bytes below which the store is refilled
 set targetSize    –  Set the number of bytes to have after refilling
 set style [style] –  Set the default display style
@@ -59,7 +59,7 @@ help/?            –  Display this text
 quit              –  Quit
 ```
 
-Commands are not case-sensitive.
+Commands are not case-sensitive (except for specifying file paths).
 
 #### Display options
 
