@@ -128,15 +128,15 @@ readStyle = fmap Just . parseStyle
 
 savePattern :: String -> Maybe String
 savePattern str =
-  case (cwords str) of
+  case cwords str of
     [_]        -> Nothing
     "save" : _ -> return . unwords . tail . words $ str
     _          -> Nothing
 
 loadPattern :: String -> Maybe String
 loadPattern str =
-  case (cwords str) of
-    [_]         -> Nothing
+  case cwords str of
+    [_]        -> Nothing
     "load" : _ -> return . unwords . tail . words $ str
     _          -> Nothing
 
@@ -188,7 +188,7 @@ interp Quit                   = pure ()
 
 -- | Perform command, via 'interp', after printing a description to STDOUT.
 command :: Command -> IO ()
-command c = (announce c *> interp c)
+command c = announce c *> interp c
 
 -- | Given a string, attempt to interpret it as an IO action, and either perform it or report
 --   the parse failure.
