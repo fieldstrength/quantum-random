@@ -59,7 +59,7 @@ help/?            –  Display this text
 quit              –  Quit
 ```
 
-Commands are not case-sensitive (except for specifying file paths).
+Commands are not case-sensitive (except for file paths).
 
 #### Display options
 

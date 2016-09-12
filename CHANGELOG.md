@@ -1,5 +1,9 @@
 # Revision history for `quantum-random`
 
+#### 0.6.3
+
+* Update dependency for `aeson-1.0`.
+
 #### 0.6.2
 
 * Update dependency for `ansigraph-0.3`.
