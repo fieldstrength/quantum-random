@@ -1,5 +1,6 @@
-# NB: don't set `language: haskell` here
+# Muli-GHC Travis – https://github.com/hvr/multi-ghc-travis
 
+# NB: don't set `language: haskell` here
 # explicitly request legacy non-sudo based build environment
 
 sudo: required
