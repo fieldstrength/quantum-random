@@ -1,5 +1,5 @@
 name:                quantum-random
-version:             0.6.3
+version:             0.6.4
 synopsis:            Retrieve, store and manage real quantum random data.
 
 description:         Retrieve, store and manage real quantum random data, originating from vacuum
@@ -46,7 +46,6 @@ library
                        ansigraph     >=0.2  && <0.4,
                        aeson         >=0.8  && <1.2,
                        text          >=1.2  && <1.3,
-                       regex-posix   >=0.9  && <1.0,
                        bytestring    >=0.10 && <0.11,
                        http-conduit  >=2.1  && <2.3,
                        ansi-terminal >=0.6  && <0.7,

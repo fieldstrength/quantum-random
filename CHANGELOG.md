@@ -1,5 +1,10 @@
 # Revision history for `quantum-random`
 
+#### 0.6.4
+
+* Update dependency for `aeson-1.1`.
+* Drop `regex-posix` dependency and properly use Aeson's `fieldLabelModifier` instead.
+
 #### 0.6.3
 
 * Update dependency for `aeson-1.0`.
